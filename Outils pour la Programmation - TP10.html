@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<!-- saved from url=(0085)https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/2/TP10.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>Outils pour la Programmation - TP10</title>
+    <link rel="stylesheet" type="text/css" href="./Outils pour la Programmation - TP10_files/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com/"><link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin=""><link rel="stylesheet" href="./Outils pour la Programmation - TP10_files/css2" class="wtd-font"><link rel="stylesheet" href="./Outils pour la Programmation - TP10_files/css2(1)" class="wtd-font"></head>
+
+<body>
+
+<div id="bcPage">
+
+    <header>    
+    
+    <h1>Outils pour la programmation - Travaux pratiques</h1>
+
+    <h1 class="pluspetit">TP10 - Test d'interface graphique avec Selenium</h1>
+
+    </header>
+
+    <p style="text-decoration:underline;">Objectifs du TP :</p>
+
+    <ul>
+        <li>prendre en main un robot d'exécution de tests (sous forme d'un plug-in du navigateur) pour enregistrer et rejouer des tests
+        au travers du navigateur</li>
+        <li>piloter un robot d'exécution depuis un langage de programmation (Java), </li>
+        <li>écrire et exécuter des scénarios de test s'appuyant sur l'interface graphique</li>
+    </ul>
+
+    
+    <h3>Un petit mot sur Selenium</h3>
+    
+    <p><a href="https://www.selenium.dev/" target="_blank">Selenium HQ</a> est un robot d'exécution de tests dédié au web. 
+        Il a pour principales fonctions d'être capable
+        d'interagir avec le navigateur pour réaliser/simuler des actions classiques d'un utilisateur dans 
+        celui-ci : ouvrir une page, cliquer sur un lien/un bouton/une zone de l'écran, taper un texte dans 
+        une zone de saisir, etc. Selenium a 
+        de ce fait un petit côté <em>magique</em>... Il reste très utilisé en entreprise, dès lors que l'on 
+        cherche à tester des applications web. 
+    </p>
+    
+    <img src="./Outils pour la Programmation - TP10_files/big-logo.png" class="figure" style="width: 10%;">
+    
+    <p>Selenium existe en deux déclinaisons : </p>
+    
+    <ol>
+        <li><a href="https://www.selenium.dev/selenium-ide/" target="_blank">Selenium IDE</a> se présente sous 
+            la forme d'un plug-in intégré à Firefox ou à Chrome. Il permet 
+        la capture et le rejeu de tests. Il fonctionne en enregistrant les actions réalisés par l'utilisateur
+        sur le navigateur. Pour chaque action, l'outil enregistre la commande (clic, double clic, etc.), la cible
+        de l'action qui sera désignée soit par un identifiant HTML (attribut <code>id</code>) soit par un
+        sélecteur CSS plus ou moins précis/lisible. Le verdict d'un test est établi en fonction de la capacité 
+        pour le navigateur à rejouer la séquence dans son intégralité. 
+            <img src="./Outils pour la Programmation - TP10_files/seleniumIDE.png" class="figure" style="width: 60%;">
+        </li>
+    
+        <li><a href="https://www.selenium.dev/documentation/webdriver/" target="_blank">Selenium Web Driver</a> est 
+            une bibliothèque permettant de manipuler le navigateur à distance à partir
+        d'un langage de programmation (Java, Python, etc.). Pour ce faire, cette bibliothèque met à disposition 
+        un objet WebDriver qui permet de réaliser les actions mentionnées dans le point ci-dessus. Etant intégré
+        à un langage de programmation, cette version offre des possibilités plus étendues que Selenium IDE, 
+        autorisant notamment de placer des assertions (potentiellement basées sur ce qui est affiché à l'écran), 
+        ou de créer des alternatives, de factoriser des groupes d'actions, etc.</li>
+        
+    </ol>
+    
+    <p>Dans ce TP, nous allons commencer par manipuler un peu Selenium IDE, puis nous allons mettre en place un 
+    environnement complet de test avec Selenium Driver. </p>
+    
+    
+    <h3>Etape 1. Jouer un peu avec l'application à tester (temps indicatif : 15 minutes)</h3>
+    
+    <p>L'application que nous allons tester avec Selenium est une implantation visuelle du métro de Sapporo, qui 
+        pourrait s'apparenter à un petit jeu vidéo de découverte d'un métro Japonais. </p>
+    
+    <p>Cette application est disponible à l'adresse : 
+        <a href="https://fdadeau.github.io/chikatetsu/" target="_blank">https://fdadeau.github.io/chikatetsu</a></p>
+    
+    <p class="important">Attention, la compatibilité avec Internet Explorer n'est pas garantie.</p>
+    
+    <p>Prenez quelques minutes pour vos familiariser avec le fonctionnement de l'application. Quelques précisions : </p>
+
+    <ul>
+        <li>Vous dirigez un personnage qui effectue un trajet en métro. Conformément à ce qui a été vu et décrit durant
+        les TP, il faut d'abord passer par une machine pour acheter un ou plusieurs tickets, avant de franchir les barrières
+        pour entrer. </li>
+        <li>Le bouton en bas à gauche permet d'ajouter un personnage. Celui-ci arrive déjà sélectionné (un point blanc 
+            au dessus du personnage indique qu'il est sélectionné), mais il peut être dé-sélectionné à tout moment (en 
+            cliquant sur son sprite). </li>
+        <li>les personnages peuvent être déplacés dans la station, et peuvent également se déplacer seuls pour aller 
+            faire une action. </li>
+        <li>Les actions possibles sont d'aller à une machine pour acheter un ticket ou ajuster son prix, de passer une 
+            barrière, de monter dans une rame, descendre de la rame, etc. </li>
+        <li>L'icône de la carte en haut à droite permet de visualiser les stations, et de voir les prix des différentes
+            destinations. Si aucun personnage n'est actuellement sélectionné, la carte permet de changer la station courante. 
+        </li>
+        <li>On peut consulter les tickets d'un personnage sélectionné avec le bouton en bas à gauche. L'ouverture du 
+            bandeau contenant les tickets empêchera de déplacer le personnage, tant qu'il restera ouvert. Lorsque
+            le personnage a besoin de sortir un ticket, ce bandeau s'ouvrira automatiquement pour permettre de choisir
+            le ticket qu'il utilisera (pour passer une barrière, ou pour ajuster son prix). 
+        </li>
+        <li>Pour finir, si le personnage sélectionné est sorti de la station, on peut lui faire quitter le jeu à 
+            l'aide du bouton de sortie en bas à droite de l'interface. </li>
+    </ul>
+    
+    <p>Pour le reste, le workflow est celui avec lequel vous <span style="text-decoration: line-through;">galérez</span>
+    travaillez depuis 3 mois. </p>
+
+    <p>Ce programme, bien qu'il ne se présente pas sous la forme d'une application web "classique", vous permettra toutefois
+    de tester les principales fonctionnalités de ce genre d'applis : identifier les éléments du DOM avec lesquels interagir, 
+        réaliser l'interaction, [éventuellement attendre,] contrôler le résultat de l'interaction. </p>
+
+    
+    <h3>Etape 2. Utiliser Selenium IDE  (temps indicatif : 30 minutes)</h3>
+    
+    <p>Si celui-ci n'est pas déjà installé, vous pouvez aller sur la  
+        <a href="https://www.selenium.dev/selenium-ide/" target="_blank">page de description</a> 
+    pour installer ce plug-in dans votre navigateur préféré. </p>
+    
+    
+    <h4>Travail à réaliser</h4>
+    
+    <ol>
+        <li>Lancez le plug-in et enregistrez une séquence d'actions simples sur l'interface. Construisez 
+            un scénario dans lequel un personnage entre dans la station, achète un ticket, passe la barrière,
+            se présente à la sortie de cette même station, franchit la barrière dans l'autre sens et quitte 
+            le jeu (ce qui correspond à la capture d'écran montrée plus haut). </li>
+        <li>Rejouez le test sur l'application. </li>
+        <li>Editez le test précédent pour rajouter la descente vers un train et la remontée à la station suivante. </li>
+        <li>Jouez ce test sur l'application. </li>    
+    </ol>
+    
+    <p>Notez qu'il est possible d'enregistrer votre scénario au format <code>.side</code> (format interne à Sélénium), 
+    ainsi que de l'exporter, notamment au format JUnit, que nous allons voir juste après. </p>
+
+    <h3>Etape 3. Utilisation de Selenium Web Driver (2h15)</h3>
+    
+    <p>L'utilisation de Selenium Web Driver nécessite l'installation d'un programme spécifique pour permettre le pilotage 
+    à distance du navigateur. Ce programme est soit à lancer à part dans un terminal, soit (et ce sera la solution que 
+    l'on utilisera) à référencer dans le code Java pour permettre son lancement automatique depuis nos tests. </p>
+    
+    <p>Téléchargez le pilote pour Chrome <a href="https://chromedriver.chromium.org/downloads" target="_blank">disponible ici</a> 
+        correspondant à la version de votre navigateur 
+        (pour la suite du TP, on fera les manipulations avec Chrome, mais on pourrait aussi bien faire la même manipulation avec FireFox
+        en prenant le plug-in correspondant -- voir plus bas). <br>
+    Ce pilote est un fichier exécutable nommé <code>chromedriver</code> qu'il suffit d'extraire dans le répertoire de votre choix.
+    </p>
+    
+    <!--
+    <p class="important">Attention, dans les salles de TP, il faut prendre la version 2.33 du ChromeDriver (linux32 ou linux64), <br>disponible 
+        <a href="https://chromedriver.storage.googleapis.com/index.html?path=2.33/" target="_blank">ici</a></p>
+    -->
+
+    <p>La façon la plus simple d'intégrer Selenium Web Driver dans un projet Java est de passer par Maven. Créez un nouveau
+        projet IntelliJ. Ajoutez dans le fichier <code>pom.xml</code> les dépendances suivantes : </p>
+    
+    <p class="terminal">
+        &lt;dependency&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;groupId&gt;org.seleniumhq.selenium&lt;/groupId&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;artifactId&gt;selenium-server&lt;/artifactId&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;version&gt;3.14.0&lt;/version&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;scope&gt;test&lt;/scope&gt;<br>
+        &lt;/dependency&gt;
+    </p>
+    
+    <p>Le code permettant d'appeler cet exécutable est à placer dans le @Before des tests : </p>
+    
+    <p class="codesource"><b>class</b> TestSeleniumAvecChrome <b>extends</b> TestCase {
+    ...
+    @Before
+    <b>public void</b> setUp() {
+        System.setProperty("webdriver.chrome.driver", "/chemin/vers/chromedriver");
+        driver = <b>new</b> ChromeDriver();
+        driver.get("https://fdadeau.github.io/chikatetsu/");
+    }
+    ...
+}</p>
+    
+    <p>Pour découvrir les API offertes par Selenium, 
+        <a href="https://www.selenium.dev/documentation/" target="_blank">c'est ici</a>. </p>
+    
+    
+    <p>Si vous préférez travailler avec Firefox, vous pouvez utiliser le plugin GeckoDriver, téléchargeable 
+        <a href="https://github.com/mozilla/geckodriver/releases" target="_blank">ici</a>. </p>
+    
+      <p class="codesource"><b>class</b> TestSeleniumAvecChrome <b>extends</b> TestCase {
+    ...
+    @Before
+    <b>public void</b> setUp() {
+        System.setProperty("webdriver.gecko.driver", "/chemin/vers/geckodriver");
+        driver = <b>new</b> FirefoxDriver();
+        driver.get("https://fdadeau.github.io/chikatetsu/");
+    }
+    ...
+}</p>
+    
+    <p class="important">
+        En salle TP, n'oubliez pas de paramétrer le proxy système (Paramètres Système &gt; Réseau)
+        <img src="./Outils pour la Programmation - TP10_files/proxy-systeme.png" class="figure" style="width: 80%;">
+    
+    </p>
+    
+    
+    <h4>Travail à réaliser</h4>
+    
+    <ol>
+        <li>Partez de la classe de test <a href="https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/2/java/TestMetroSelenium.java">fournie ici</a>. Ajoutez-là à votre projet 
+            (ou copiez/collez le code) et exécutez le scénario de test qui y est décrit.</li>
+        
+        <li>Explorez le code de la méthode <code>testScenario1</code>. Ce code s'appuie sur une classe utilitaire factorisant
+            au niveau de l'interface les actions servant de "brique de base" pour construire des cas de tests (ajouter un 
+            personnage, lui faire acheter des tickets, etc.). Ce type d'objet s'appelle une <code>façade</code>, car il donne 
+            accès "en façade" à des fonctionnalités simples, qui sont en réalités des actions concrètes complexes. </li>
+    
+        <li>Réutilisez les briques existantes, et ajoutez-en d'autres, pour créer d'autres scénarios de 
+        test. Testez, par exemple, les cas suivants : 
+            <ul>
+                <li>L'usager arrive depuis la gare ferroviaire de Sapporo (station "Sapporo"), accède au métro et se rend 
+                    à la station suivante ("Ōdōri") pour aller profiter du 
+                    <a href="https://www.sapporo.travel/summerfes/" target="_blank">Sapporo Summer Festival</a> 
+                    afin de goûter des bières locales. </li>
+                <li>L'usager effectue un trajet complexe, partant de son logement dans le quartier "Susukino" (N08) et allant 
+                    visiter la célèbre chocolaterie <a href="https://www.shiroikoibitopark.jp/en/" target="_blank">Shiroi 
+                    Koibito (<i>Les Amoureux Blancs</i>)</a> située à proximité de la station 
+                    "Miyanosawa" (T01). Etant un peu distrait, il n'aura pas provisionné assez d'argent pour son trajet 
+                    (qui doit lui coûter 290 yens) et devra ajuster le montant de son ticket avant de sortir. 
+                </li>
+            </ul>
+        </li>
+        
+    </ol>
+    
+
+<h3>Travail à rendre</h3>
+
+<p>Pour cet TP, il n'y aura rien à rendre (pour de vrai). Toutefois, vous pouvez vous inspirer des tests de l'application pour compléter 
+    vos tests du TP9... </p>
+    
+    
+</div>
+
+
+
+
+<script id="define-custom-element-wtd-root">
+      (() => {
+        window.customElements.whenDefined('wtd-root').then(() => {
+          window.dispatchEvent(
+            new CustomEvent('customElements.defined', {
+                detail: {
+                  name: 'wtd-root',
+                },
+            }),
+          );
+        });
+
+        if (window.customElements.get('wtd-root')) return;
+
+        window.customElements.define('wtd-root', class extends HTMLElement {
+          constructor() {
+            super();
+            this.attachShadow({ mode: 'open' });
+          }
+        });
+      })();
+    </script><wtd-root id="cashback"><template shadowrootmode="open"><div id="root"></div><link rel="stylesheet" href="chrome-extension://emnoomldgleagdjapdeckpmebokijail/tailwind/tailwind.css"></template></wtd-root><script id="define-custom-element-wtd-div">
+      (() => {
+        window.customElements.whenDefined('wtd-div').then(() => {
+          window.dispatchEvent(
+            new CustomEvent('customElements.defined', {
+                detail: {
+                  name: 'wtd-div',
+                },
+            }),
+          );
+        });
+
+        if (window.customElements.get('wtd-div')) return;
+
+        window.customElements.define('wtd-div', class extends HTMLElement {
+          constructor() {
+            super();
+            
+          }
+        });
+      })();
+    </script><wtd-div id="wanteeedContainer" style="position: fixed; display: block; top: 0px; right: 0px; z-index: 2147483647;"><wtd-root id="comparator"><template shadowrootmode="open"><div id="root"><div class="pointer-events-none z-[2147483647] flex select-none flex-col items-end overflow-hidden font-sans antialiased"></div></div><link rel="stylesheet" href="chrome-extension://emnoomldgleagdjapdeckpmebokijail/tailwind/tailwind.css"></template></wtd-root><iframe id="wanteeedPanel" data-version="1.118.0" allowtransparency="true" style="background-color: rgb(255, 255, 255); border: none; border-radius: 3px; box-shadow: rgb(181, 181, 181) 1px 1px 3px 2px; clip: auto; display: none; margin-left: auto; margin-right: 12px; margin-top: 12px; position: relative; z-index: 2147483647; height: 1px; width: 1px;" src="./Outils pour la Programmation - TP10_files/saved_resource.html"></iframe></wtd-div><iframe id="wanteeedTestMaker" data-version="1.118.0" allowtransparency="true" style="border: none; clip: auto; display: none; left: 0px; overflow: hidden; position: fixed; top: 10px; transition: all 0.2s ease-out 0s; z-index: 45739864; height: 1px; width: 1px;" src="./Outils pour la Programmation - TP10_files/saved_resource(1).html"></iframe></body></html>

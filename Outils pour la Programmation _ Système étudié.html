@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<!-- saved from url=(0087)https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/58/sujet.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>Outils pour la Programmation | Système étudié</title>
+    <link type="text/css" rel="stylesheet" href="./Outils pour la Programmation _ Système étudié_files/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com/"><link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin=""><link rel="stylesheet" href="./Outils pour la Programmation _ Système étudié_files/css2" class="wtd-font"><link rel="stylesheet" href="./Outils pour la Programmation _ Système étudié_files/css2(1)" class="wtd-font"></head>
+
+<body>
+
+    <div id="bcPage">
+
+    <header>
+        <h1>Etude de cas - Chikatetsu</h1>
+    </header>
+        
+    <p>Nous allons étudier un système de transport souterrain, également appelé métropolitain (ou métro pour faire court)
+        dans sa déclinaison Japonaise. 
+        Dans cette étude, nous n'étudierons pas la partie ferroviaire, mais nous nous focaliserons plutôt sur l'aspect 
+        billétique des titres de transport. De ce fait, nous allons construire un système de gestion des déplacements des 
+        utilisateurs du métro, conditionné par le paiement de ces déplacements. </p>
+
+        <img src="./Outils pour la Programmation _ Système étudié_files/sapporo_subway.jpg" style="display: block; margin: 10px auto; width: 600px;">
+
+    <h2>Description du système considéré</h2>
+
+        <p>Classiquement, les usagers pénètrent dans la station de métro en franchissant une barrière d'entrée à l'aide 
+            d'un titre de transport valide. Ils se rendent à leur destination en montant dans une rame qui parcourt les 
+            arrêts d'une ligne. Ils peuvent éventuellement emprunter des correspondances dans certaines stations pour 
+            passer d'une ligne à l'autre. Finalement, une fois à destination, ils ressortent du métro en franchissant une 
+            barrière de sortie. </p>
+        
+        <figure>
+            <img src="https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/58/images/odori_station.jpg" style="width: 700px;">
+            <figcaption>Fig. 1 : Une des entrées de la station principale Odori dans la ville de Sapporo</figcaption>
+        </figure>
+
+        
+        <p>Les tickets de transport sont généralement achetés auprès d'une machine (un automate), qui permet indifféremment 
+        d'acheter des tickets à l'unité ou de recharger des cartes de transport prépayées (non considérées dans notre étude). </p>
+        
+        <figure>
+            <img src="https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/58/images/ticket_machine.jpg" style="width: 700px;">
+            <figcaption>Fig. 2 : Un automate permettant (entre autres) l'achat de tickets de transport</figcaption>
+        </figure>
+
+            
+        <p>Le tarif du voyage dépend de la distance parcourue entre la station d'entrée et la station de sortie, 
+            comptabilisée en kilomètres sur le tracé des lignes composant le réseau de métro. Ainsi, avant de pouvoir passer 
+            la barrière d'entrée, le voyageur achète un ticket initialisé avec une certaine provision d'argent (lui permettant 
+            d'aller plus ou moins loin). Au moment du passage à la barrière de sortie, si la provision est suffisante, l'usager 
+            peut sortir. </p>
+        
+        <p>Pour éviter que le voyageur ne puisse pas sortir d'une station parce qu'il n'a pas provisionné assez d'argent sur son ticket, il a la possibilité d'ajuster le montant contenu sur celui-ci dans une machine dédiée (<em>Fare Adjustment</em>). On notera qu'il 
+        ne viendrait tout simplement pas à l'idée des usagers de sauter au dessus de la barrière pour resquiller, comme on le ferait 
+        dans des pays moins civilisés. </p>
+        
+        <figure>      
+            <img src="./Outils pour la Programmation _ Système étudié_files/fare-adjustment.jpg" style="width: 300px;">
+            <figcaption>Fig. 3 : Une machine permettant de régulariser son titre de transport</figcaption>
+        </figure>
+
+
+        <p>Le réseau de métro comporte potentiellement plusieurs lignes qui peuvent se croiser à 
+            certaines stations pour permettre aux usagers de prendre une correspondance. La figure ci-dessous montre le maillage du
+            <a href="https://fr.wikipedia.org/wiki/M%C3%A9tro_de_Sapporo" target="_blank">réseau de transport souterrain de Sapporo</a> 
+            sur l'île de Hokkaido au Japon. On y trouve 3 lignes, nommées Tozai, Namboku et Toho, qui relient
+            les 46 stations. Les stations centrales du réseau (Sapporo et Odori) sont les hôtes de plusieurs lignes et permettent ainsi de passer d'une ligne à une autre. </p>
+        
+        <figure>
+            <img src="./Outils pour la Programmation _ Système étudié_files/sapporo_map.jpg" style="display: block; margin: 10px auto; width: 600px;">
+            <figcaption>Fig. 4 : La carte du métro de Sapporo</figcaption>
+        </figure>
+
+        <p>Le tableau de coût des trajets (basé sur les kilomètres théoriquement parcourus en prenant le chemin le plus court entre les stations) est donné <a href="https://www.city.sapporo.jp/st/english/documents/fare_information5.pdf" target="_blank">ici</a> et extrait ci-dessous. Les prix sont exprimés en yens (pour briller en société : 100 yen = 0.85 euros). On remarque que la tarification est découpée en zones correspondant aux distances depuis la station d'entrée (zone 1 = moins de 3km, zones 2 = entre 3km et 7km, etc.)</p>
+        
+        <figure>
+            <div style="text-align: center;">
+                <img src="./Outils pour la Programmation _ Système étudié_files/fares1.png" style="height: 160px;">
+                <img src="https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/58/images/fares2.png" style="height: 450px;">
+            </div>
+            <figcaption>Fig. 5 : Tarification des déplacements au sein du métro de Sapporo</figcaption>
+        </figure>
+        
+        
+
+
+        <h2>Description du modèle de données</h2>
+
+        <p>Dans le cadre de notre étude, nous développerons les entités visibles dans le diagramme de classes ci-dessous :</p>
+        
+        <figure>
+            <img src="https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/58/images/DiagrammeClasse.png" style="display: block; margin: 10px auto; width: 800px;">
+            <figcaption>Fig. 6 : Diagramme de classe de l'application</figcaption>
+        </figure>
+
+<p>Ces entités seront développées comme des classes Java, qui devront être testées au fur et à mesure. Chacune fera l'objet d'un TP pour lesquels une spécification détaillée sera donnée.</p>
+
+<ul>
+    <li>La classe <code>Station</code> décrit les stations de métro, et permet de connaître les informations relatives aux voyages possibles (lignes) et celles nécessaires à la tarification (position kilométrique de la station sur la ligne). </li>
+
+    <li>La classe <code>Network</code> décrit le réseau comme un ensemble cohérent de stations, organisées en plusieurs lignes.
+        
+    </li><li>La classe <code>NetworkReader</code> permet d'instancier le réseau à partir d'un fichier dont on réalisera l'analyse 
+    lexicale et syntaxique, ainsi que diverses vérifications (réalisées par des classes dédiées non représentées ici pour des
+    questions de lisibilité). </li>
+
+    <li>L'interface <code>ITicket</code> représente les titres de transports achetés par les voyageurs. Cette interface est 
+        implémentée par deux sous-classes, l'un représentant les tickets basiques (<code>BaseTicket</code>), l'autre représentant
+        des tickets dont le montant a été ajusté (<code>AdjustedTicket</code>) potentiellement plusieurs fois. </li>
+    
+    <li>La classe <code>TicketMachine</code> est une fabrique singleton qui vise à l'instanciation ou la manipulation des tickets.</li>
+    
+    <li>La classe <code>Barrier</code> décrit les barrières qui sont franchies par les voyageurs pour accéder aux quais ou 
+        pour sortir de la station. Chaque barrière peut être utilisée dans les deux sens (les Japonais étant très disciplinés, 
+        on peut proposer ce système sans risquer de provoquer une mêlée de Rugby ou déclencher une bagarre générale pour franchir 
+        les barrières, et ce, même aux heures de pointe).  </li>
+
+</ul>    
+        
+    
+    <h3>Planning des séances de TP</h3>
+    
+
+<ul>
+    <li><a href="https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/58/TP1.html">TP1 - semaine du 20/09</a> : Test unitaire de la classe <code>Station</code> (JUnit, Jacoco intégré dans IntelliJ avec Maven)</li>
+    <li><a href="https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/58/TP2.html">TP2 - semaine du 27/09</a> : Test Driven Development de la classe <code>Network</code> </li>
+    <li><a href="https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/58/TP3.html">TP3 - semaine du 4/10</a> : Test boîte noire de la classe <code>BaseTicket</code> et implémentation de la classe 
+        <code>AdjustedTicket</code> au moyen d'un design pattern "Décorateur"</li>
+    <li><a href="https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/58/TP4.html">TP4 - semaine du 11/10</a> : Test unitaire de la classe <code>Barrier</code> en utilisant des mocks</li>
+    <li><a href="https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/58/sujet.html#">TP5 - semaine du 18/10</a> : Test d'intégration de la classe <code>Barrier</code></li>
+    <li><a href="https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/58/sujet.html#">TP6 - semaine du 25/10</a> : Utilisation d'un debugger et écriture d'un visiteur utilisé par la classe <code>NetworkReader</code></li>
+    <li><a href="https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/58/sujet.html#">TP7 - semaine du 8/11</a> : Utilisation de Git et intégration continue avec GitLab</li>
+    <li><a href="https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/58/sujet.html#">TP8 - semaine du 22/11</a> : Développement collaboratif, écriture et test de la classe <code>TicketMachine</code></li>
+    <li><a href="https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/58/sujet.html#">TP9 - semaine du 29/11</a> : Tests fonctionnels de l'application complète </li>
+    <li><a href="https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/58/sujet.html#">TP10 - semaine du 6/12</a> : Test de recette du système réel sous forme d'une application web (Sélenium)</li>
+</ul>
+
+    </div>
+
+
+
+
+<script id="define-custom-element-wtd-root">
+      (() => {
+        window.customElements.whenDefined('wtd-root').then(() => {
+          window.dispatchEvent(
+            new CustomEvent('customElements.defined', {
+                detail: {
+                  name: 'wtd-root',
+                },
+            }),
+          );
+        });
+
+        if (window.customElements.get('wtd-root')) return;
+
+        window.customElements.define('wtd-root', class extends HTMLElement {
+          constructor() {
+            super();
+            this.attachShadow({ mode: 'open' });
+          }
+        });
+      })();
+    </script><wtd-root id="cashback"><template shadowrootmode="open"><div id="root"></div><link rel="stylesheet" href="chrome-extension://emnoomldgleagdjapdeckpmebokijail/tailwind/tailwind.css"></template></wtd-root><script id="define-custom-element-wtd-div">
+      (() => {
+        window.customElements.whenDefined('wtd-div').then(() => {
+          window.dispatchEvent(
+            new CustomEvent('customElements.defined', {
+                detail: {
+                  name: 'wtd-div',
+                },
+            }),
+          );
+        });
+
+        if (window.customElements.get('wtd-div')) return;
+
+        window.customElements.define('wtd-div', class extends HTMLElement {
+          constructor() {
+            super();
+            
+          }
+        });
+      })();
+    </script><wtd-div id="wanteeedContainer" style="position: fixed; display: block; top: 0px; right: 0px; z-index: 2147483647;"><wtd-root id="comparator"><template shadowrootmode="open"><div id="root"><div class="pointer-events-none z-[2147483647] flex select-none flex-col items-end overflow-hidden font-sans antialiased"></div></div><link rel="stylesheet" href="chrome-extension://emnoomldgleagdjapdeckpmebokijail/tailwind/tailwind.css"></template></wtd-root><iframe id="wanteeedPanel" data-version="1.118.0" allowtransparency="true" style="background-color: rgb(255, 255, 255); border: none; border-radius: 3px; box-shadow: rgb(181, 181, 181) 1px 1px 3px 2px; clip: auto; display: none; margin-left: auto; margin-right: 12px; margin-top: 12px; position: relative; z-index: 2147483647; height: 1px; width: 1px;" src="./Outils pour la Programmation _ Système étudié_files/saved_resource.html"></iframe></wtd-div><iframe id="wanteeedTestMaker" data-version="1.118.0" allowtransparency="true" style="border: none; clip: auto; display: none; left: 0px; overflow: hidden; position: fixed; top: 10px; transition: all 0.2s ease-out 0s; z-index: 45739864; height: 1px; width: 1px;" src="./Outils pour la Programmation _ Système étudié_files/saved_resource(1).html"></iframe></body></html>

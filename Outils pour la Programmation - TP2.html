@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<!-- saved from url=(0084)https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/2/TP2.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	
+	<title>Outils pour la Programmation - TP2</title>
+    <link rel="stylesheet" type="text/css" href="./Outils pour la Programmation - TP2_files/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com/"><link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin=""><link rel="stylesheet" href="./Outils pour la Programmation - TP2_files/css2" class="wtd-font"><link rel="stylesheet" href="./Outils pour la Programmation - TP2_files/css2(1)" class="wtd-font"></head>
+
+<body>
+
+<div id="bcPage">
+    
+<header>    
+    
+<h1>Outils pour la programmation - Travaux pratiques</h1>
+    
+<h1 class="pluspetit">TP2 - Test Driven Development</h1>
+
+</header>    
+    
+<p style="text-decoration:underline;">Objectifs du TP :</p>
+  <ul>
+        <li>Consolider les acquis du premier TP en poursuivant l'utilisation de l'environnement de développement IntelliJ couplé à Maven.
+        </li><li>Comprendre et appliquer le principe du Test Driven Development (TDD) </li>
+</ul>
+
+
+<h2>Description de l'application à tester</h2>
+
+<p>L'application à développer et à tester est un système de gestion des voyages en métro. La description complète est <a href="https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/2/sujet.html" target="_blank">disponible ici</a>. Le modèle de données considéré est rappellé ci-dessous :</p>
+
+<img src="./Outils pour la Programmation - TP2_files/DiagrammeClasse.png" alt="Diagramme de classes" class="figure" style="max-width: 800px;">
+
+<p>Dans ce deuxième TP, nous allons travailler sur la classe <code>Network</code> qui représente le maillage des stations
+    de métro sur les différentes lignes. Cette classe sera écrite dans le fichier <code>Network.java</code>. </p>
+
+    
+<h3 id="spec">Spécification de la classe <code>Network</code></h3>        
+    
+<p>Le réseau contient un ensemble de stations, organisées en lignes pour lesquelles certaines stations permettent un 
+    transfert d'une ligne à l'autre. </p>
+
+<p>La classe <code>Network</code> comprend les constructeurs et méthodes suivantes : </p>
+
+<ul>
+    <li><code>public Network()</code> construit un réseau vide. </li>
+
+    <li><code>public void addStation(Station s)</code> permet d'ajouter la station passée en paramètre au réseau.
+    La station ne sera ajoutée au réseau que si une autre station ne porte pas déjà le même nom. On fera l'hypothèse
+    que le paramètre n'est jamais <code>null</code> (précondition). </li>
+    
+    <li><code>public Set&lt;String&gt; getLines()</code> retourne l'ensemble des lignes présentes sur le réseau. </li>
+    
+    <li><code>public Station getStationByName(String name)</code> permet de récupérer une station du réseau à partir 
+        de son nom. Si la station n'existe pas, la méthode renvoie une valeur <code>null</code>.</li>
+    
+    <li><code>public Station getStationByLineAndNumber(String line, int number)</code> permet de récupérer une station 
+        du réseau à partir de la ligne et du numéro de station. Si la station n'existe pas, la méthode renvoie une valeur 
+        <code>null</code>.</li>
+        
+    <li><code>public boolean isValid()</code> permet de savoir si le réseau est comme valide. 
+        Un réseau sera considéré comme valide si toutes les conditions suivantes sont remplies : il existe au moins une 
+        ligne, 
+        chaque ligne est correctement structurée (chaque ligne contient au moins une station, 
+        la première station porte le numéro 1 et se trouve au kilomètre 0, la numérotation des stations 
+        de la ligne ne présente pas de numéros en double ou de numéro manquants, et les positions kilométriques sont 
+        strictement croissantes 
+        tout au long de la ligne). Par ailleurs, chaque station doit être accessible depuis n'importe quelle autre station (dit 
+        autrement : il n'y a pas de ligne isolée sur le réseau). 
+    </li>
+    
+    <li><code>public double distance(String s1, String s2)</code> renvoie la plus courte distance entre 
+    les deux stations dont le nom est passée en paramètre. Si la méthode est appelée sur un réseau invalide ou sur des 
+        paramètres <code>null</code>, ou désignant des stations n'appartenant pas au réseau, une valeur négative sera renvoyée. 
+    </li>
+
+</ul>
+
+    
+<p>Le développement de la classe <code>Network</code> devra être réalisé en mode Test Driven Development, comme décrit ci-après. </p>
+
+<h2>Test Driven Development</h2>
+
+  <img src="./Outils pour la Programmation - TP2_files/tdd-vs-ftt.png" style="width: 340px; height: auto; display: block; float: right; margin-left: 20px;">   
+    
+<p style="clear: none;">Comme expliqué en cours, le Test Driven Development est une pratique qui consiste à écrire les tests avant 
+    de commencer à coder. L'idée est simple : on commence par écrire un code minimal pour permettre à la classe
+    de test de compiler. La classe sous test contient donc les méthodes appelées dans les tests, réduites à 
+    leur plus simple expression : soit du code vide si la méthode ne retourne rien (type <code>void</code>) ou 
+    une constante du type attendu (par exemple <code>return 0;</code> pour une méthode de type <code>int</code>).  </p>
+    
+<p style="clear: none;">Le processus consiste ensuite à : s'assurer que les tests échouent, compléter les tests jusqu'à ce qu'ils 
+    passent, refactoriser si nécessaire et recommencer jusqu'à ce que toutes les fonctionnalités soient couvertes. </p>
+
+    <img src="./Outils pour la Programmation - TP2_files/tddSteps.png" class="figure" style="width: 250px; clear: none;">    
+    
+<p style="clear: none;">
+    En cas de refactorisation du code, on s'appuiera bien évidemment sur les tests déjà écrits qui serviront à vérifier
+    la non-régression (c'est-à-dire vérifier que ce qui a été modifié n'a pas cassé de fonctionnalités précédemment validées).
+    </p>
+
+    <img src="./Outils pour la Programmation - TP2_files/tddStates.png" class="figure" style="width: 500px; clear: none;">    
+
+<h2>Travail à réaliser</h2>
+
+<p>Mise en pratique d'une approche "Test-Driven Development" durant laquelle vous partirez d'un 
+    ensemble de tests validant le bon comportement de la classe <code>Network</code>. </p>
+
+<p>Cet ensemble de test peut être focalisé sur une méthode particulière, décrivant les différents 
+    cas d'exécution de celle-ci. Puis, la méthode est développée, jusqu'à ce que les tests la concernant 
+    passent. On recommence ensuite le procédé en écrivant de nouveaux tests ciblant une autre méthode. 
+</p>
+    
+<p>Un exemple de déroulement : </p>
+    
+<ul>
+    <li>Ecrivez des tests pour les méthodes <code>addStation</code>, <code>getLines</code>, <code>getStationByName</code>, 
+    <code>getStationByLineAndNumber</code>, puis implémentez ces quatre méthodes. </li>
+    <li>Ecrivez des tests pour la méthode <code>isValid</code> puis implémentez celle-ci. </li>
+    <li>Ecrivez des tests pour la méthode <code>distance</code> puis implémentez celle-ci. </li>
+</ul>
+    
+
+<h3>Quelques indications</h3>    
+    
+    
+<p>Comme pour le TP1, veillez à respecter les principes suivants lors de l'écriture des tests : </p>
+
+    <ul>
+        <li>Placez les bonnes assertions pour observer les valeurs de retour des différentes opérations et vous assurer qu'elles 
+            se sont comportées comme vous le pensiez dans votre test. <br>
+            Consultez la <a href="https://github.com/junit-team/junit4/wiki/Assertions" target="_blank">documentation de JUnit</a> 
+            pour connaître les possibilités offertes pour établir votre verdict de test, posant les bonnes assertions. 
+        </li>
+        <li>Si vous trouvez des erreurs avec vos assertions (assert), faites attention, celles-ci ne proviennent pas forcément du 
+            code, mais peut-être de vos tests. Revérifiez systématiquement vos tests et votre code pour trouver celui qui ne respecte
+            pas la spécification.  
+        </li>
+        <li>Préférez écrire un test par fonctionnalité à tester plutôt qu'un long test visant à couvrir toutes les fonctionnalités 
+            présentes dans le code. 
+        </li>
+        <li>Utilisez la mesure de couverture pour savoir si vous avez réussi à couvrir l'intégralité de la classe <code>Network</code>. 
+            Prenez garde aux conditions qui doivent être testées dans le cas où elles s'évaluent à vrai et dans le cas où elles 
+            s'évaluent à faux. JaCoCo vous apportera une aide précieuse pour visualiser la couverture des conditions. 
+        </li>
+        <li>Si cela s'avère nécessaire, vous pouvez utiliser des méthodes permettant soit de factoriser des instructions 
+            utilisées en préambule de chaque test (généralement des initialisations d'objets) soit en postambule de chaque 
+            test (pour remettre le système dans un état "neutre" afin de pouvoir enchaîner le passage des tests sans effets de bord). 
+            Pour exécuter ces méthodes avant l'exécution des tests (respectivement après l'exécution des tests) on ajoute 
+            en JUnit 4 l'annotation @Before (resp. @After) avant la méthode correspondante.<br>
+            En l'occurrence, vous pouvez dans ce TP utiliser l'annotation <code>@Before</code> pour créer un préambule qui 
+            sera exécuté avant chaque test, et qui aura pour objectif d'instancier l'objet <code>Network</code> qui sera testé 
+            dans vos méthodes de test (cela évite de l'instancier dans chacune).
+        </li>
+</ul>
+
+    
+<p>Par ailleurs, n'hésitez pas à vous reporter à la <a href="http://junit.org/junit4/faq.html" target="_blank">FAQ JUnit</a> 
+    pour obtenir de l'aide sur les différentes manières de tests certains comportements d'un programme.
+    <!--(par exemple, 
+    <a href="http://junit.org/junit4/faq.html#atests_7" target="_blank">vérifier qu'une exception a été déclenchée</a>).-->
+    </p>
+
+<!--
+    <p>Pour finir, n'oubliez pas de placer les ressources dans le répertoire <code>/src/main/resources</code> qui sera automatiquement 
+    copié dans <code>/target/classes/</code> au moment de la compilation. Organisez vos fichiers CSV de test dans un dossier 
+    <code>csv</code>. <br>
+    Prenez garder à bien utiliser un chemin relatif pour désigner vos fichiers de test. Comme les sources sont organisées 
+    par Maven, vous pouvez instancier vos fichiers utilisés dans vos tests avec 
+    <code>new File("./target/classes/csv/monFichierDeTest.csv")</code>
+</p>
+-->
+
+    
+<h3>Travail à rendre</h3>
+
+    <p>Déposez dans le dépôt Moodle prévu à cet effet :</p>
+    <ul>
+        <li>le code source de la classe <code>Network</code> (fichier <code>Network.java</code>) et </li>
+        <li>les tests correspondant (fichier <code>TestNetwork.java</code>). </li>
+    </ul>
+        
+</div>
+
+
+
+
+
+<script id="define-custom-element-wtd-root">
+      (() => {
+        window.customElements.whenDefined('wtd-root').then(() => {
+          window.dispatchEvent(
+            new CustomEvent('customElements.defined', {
+                detail: {
+                  name: 'wtd-root',
+                },
+            }),
+          );
+        });
+
+        if (window.customElements.get('wtd-root')) return;
+
+        window.customElements.define('wtd-root', class extends HTMLElement {
+          constructor() {
+            super();
+            this.attachShadow({ mode: 'open' });
+          }
+        });
+      })();
+    </script><wtd-root id="cashback"><template shadowrootmode="open"><div id="root"></div><link rel="stylesheet" href="chrome-extension://emnoomldgleagdjapdeckpmebokijail/tailwind/tailwind.css"></template></wtd-root><script id="define-custom-element-wtd-div">
+      (() => {
+        window.customElements.whenDefined('wtd-div').then(() => {
+          window.dispatchEvent(
+            new CustomEvent('customElements.defined', {
+                detail: {
+                  name: 'wtd-div',
+                },
+            }),
+          );
+        });
+
+        if (window.customElements.get('wtd-div')) return;
+
+        window.customElements.define('wtd-div', class extends HTMLElement {
+          constructor() {
+            super();
+            
+          }
+        });
+      })();
+    </script><wtd-div id="wanteeedContainer" style="position: fixed; display: block; top: 0px; right: 0px; z-index: 2147483647;"><wtd-root id="comparator"><template shadowrootmode="open"><div id="root"><div class="pointer-events-none z-[2147483647] flex select-none flex-col items-end overflow-hidden font-sans antialiased"></div></div><link rel="stylesheet" href="chrome-extension://emnoomldgleagdjapdeckpmebokijail/tailwind/tailwind.css"></template></wtd-root><iframe id="wanteeedPanel" data-version="1.118.0" allowtransparency="true" style="background-color: rgb(255, 255, 255); border: none; border-radius: 3px; box-shadow: rgb(181, 181, 181) 1px 1px 3px 2px; clip: auto; display: none; margin-left: auto; margin-right: 12px; margin-top: 12px; position: relative; z-index: 2147483647; height: 1px; width: 1px;" src="./Outils pour la Programmation - TP2_files/saved_resource.html"></iframe></wtd-div><iframe id="wanteeedTestMaker" data-version="1.118.0" allowtransparency="true" style="border: none; clip: auto; display: none; left: 0px; overflow: hidden; position: fixed; top: 10px; transition: all 0.2s ease-out 0s; z-index: 45739864; height: 1px; width: 1px;" src="./Outils pour la Programmation - TP2_files/saved_resource(1).html"></iframe></body></html>

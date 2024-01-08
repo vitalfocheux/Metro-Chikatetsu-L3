@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<!-- saved from url=(0084)https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/2/TP4.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>Outils pour la Programmation - TP4</title>
+    <link rel="stylesheet" type="text/css" href="./Outils pour la Programmation - TP4_files/style.css">
+    <style> p { clear: none; }</style>
+<link rel="preconnect" href="https://fonts.googleapis.com/"><link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin=""><link rel="stylesheet" href="./Outils pour la Programmation - TP4_files/css2" class="wtd-font"><link rel="stylesheet" href="./Outils pour la Programmation - TP4_files/css2(1)" class="wtd-font"></head>
+
+<body>
+
+    <main>
+
+        <header>
+            <h1>Outils pour la programmation - Travaux pratiques</h1>
+            <h1 class="pluspetit">TP4 - Tests, mocks et spys</h1>
+        </header>
+
+        <p style="text-decoration:underline;">Objectifs du TP :</p>
+
+        <ul>
+            <li>Utiliser mockito (mock, spy) pour tester une classe en isolation et contrôler ses interactions avec les autres classes. </li>
+            <li>Ecrire des tests à partir d'une spécification informelle. </li>
+        </ul>
+
+       <h2>Description de l'application à tester</h2>
+
+        <p>La description complète est <a href="https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/2/sujet.html" target="_blank">disponible ici</a>. Le modèle de données considéré est rappellé ci-dessous :</p>
+
+        <img src="./Outils pour la Programmation - TP4_files/DiagrammeClasse.png" alt="Diagramme de classes" class="figure" style="max-width: 700px;">
+
+        <p>Dans ce TP, nous allons nous focaliser sur la classe <code>Barrier</code> qui permet d'autoriser le passage ou non 
+        d'un usage pour accéder au métro ou en sortir. On rappelle que les barrières peuvent être utilisées indifféremment 
+        pour entrer ou pour sortir (elles fonctionnent dans les deux sens). </p>
+
+        
+        <h3>Description de la classe <code>Barrier</code></h3>
+        
+        
+        <p>Les méthodes proposées par la classe <code>Barrier</code> sont les suivantes :</p>
+        <ul>
+            <li><code>private Barrier(Network net, String station, Map&lt;Double,Integer&gt; prices)</code> est le constructeur
+            de la classe. Le paramètre <code>net</code> représente le réseau de métro avec lequel la barrière travaillera. Le paramètre 
+                <code>station</code> représente le nom de la station où la barrière est placée. Le paramètre <code>prices</code> permet
+                d'associer à une distance (de type réel) le tarif adulte (de type entier) qui sera appliqué à partir de celle-ci. 
+            <br>Ce constructeur est <strong>privé</strong>, ce qui signifie que l'instanciation d'un objet <code>Barrier</code>
+            se fera via l'utilisation de la méthode statique <code>build</code> ci-dessous. 
+            Ce mécanisme d'instantiation est un mélange ad hoc de patrons de conception 
+                <a href="https://fr.wikipedia.org/wiki/Fabrique_(patron_de_conception)" target="_blank">Fabrique</a> 
+            (au sens où on demande à une méthode d'instancier un objet au lieu d'appeler directement le constructeur du-dit objet), 
+                et <a href="https://fr.wikipedia.org/wiki/Proxy_(patron_de_conception)" target="_blank">proxy</a> 
+            (où une entité --objet ou méthode-- sert d'intermédiaire, permettant de contrôler l'accès à une autre entité invisible de 
+                l'extérieur). </li>
+            
+            <li><img src="./Outils pour la Programmation - TP4_files/chirac.jpg" style="float: right; margin-left: 10px; margin-bottom: 10px; width: 300px;">
+                <code>public static Barrier build(Network n, String s, Map&lt;Double,Integer&gt; p)</code> 
+                    premet d'instancier un objet en contrôlant la validité des paramètres. Une barrière ne peut être 
+                    instanciée que si les paramètres ne sont pas <code>null</code>, si le réseau est valide, 
+                    si la station appartient bien au réseau, si les prix contiennent bien au moins une zone de tarification, 
+                    si toutes les distances de tarification sont positives, si les montants sont des multiples de 10 strictement positifs et augmentent avec la distance parcourue, et si la tarification commence à partir du kilomètre 0. 
+                Si ces conditions ne sont pas remplies, la valeur <code>null</code>
+                    sera renvoyée.
+            </li>
+            
+            <li>
+                <code>public boolean enter(ITicket t)</code> représente l'utilisation de la barrière dans 
+            le sens de l'entrée. Le booléen renvoyé indique si la barrière s'ouvre pour laisser passer 
+            l'usager (valeur <code>true</code>) ou si elle reste fermée (valeur <code>false</code>) ce qui 
+            pourra inciter l'usager à rendre un hommage à Jacques Chirac (voir l'illustration ci-contre). 
+            La barrière ne s'ouvrira que si le ticket est valide, qu'il n'a pas déjà été utilisé pour 
+            entrer dans réseau et qu'il est provisionné d'une somme d'argent non nulle. <br>
+                Toute tentative de réutiliser un ticket ayant déjà servi à entrer dans le réseau
+                entraînera l'invalidation de ce ticket. 
+            </li>
+            
+            <li><code>public boolean exit(ITicket t)</code> représente l'utilisation de la barrière dans 
+            le sens de la sortie. Le booléen renvoyé indique si la barrière s'ouvre pour laisser sortir
+            l'usager (valeur <code>true</code>) ou si elle reste fermée (valeur <code>false</code>). 
+            La barrière ne s'ouvre que si le ticket est valide et qu'il contient suffisamment d'argent 
+            pour parcourir la plus courte distance entre la station d'entrée enregistrée sur le ticket 
+            et la station courante. <br>
+            A noter que la tarification pour un enfant correspond à la moitié de la tarification adulte, 
+            arrondie (si nécessaire) à la dizaine supérieure. </li>
+            
+                        
+        </ul>
+                
+<p>Ici, nous allons utiliser des mocks pour pouvoir tester la barrière en isolation, sans devoir faire reposer
+    nos tests sur les classes déjà écrites. </p>
+        
+<p>Pour cela, nous allons voir deux mécanismes utiles : </p>
+        
+<ul>
+    <li>les mocks, qui sont des objets factices, remplaçant des instances réelles, que l'on va paramétrer 
+    pour simuler l'interaction souhaitée entre notre classe et les classes dont elle dépend. </li>
+    <li>les spies, qui vont permettre de contourner le code initial de notre classe pour forcer une 
+    réponse particulière. </li>
+</ul>
+        
+<h2>Mockito : Mock et Spy</h2>
+    
+<img src="./Outils pour la Programmation - TP4_files/logo@2x.png" style="width: 300px; float: left; margin-right: 10px;">      
+     
+<p><a href="https://site.mockito.org/">Mockito</a> est une bibliothèque Java permettant de réaliser des mocks et des spies sur les classes Java pour 
+permettre de réaliser un <strong>vrai test unitaire</strong>, c'est à dire un test qui se focalise 
+sur la classe à tester, sans que celle-ci ne dépende des autres classes avec lesquelles elle interagit
+normalement. </p>
+        
+<p>Au passage, vous noterez que le TP2 ne réalisait pas vraiment un test unitaire au sens strict car le réseau 
+    s'appuyait sur les stations. Dans la pratique, cela ne pose pas forcément de soucis si la classe dont 
+        on dépend à été correctement testée au préalable. </p>
+
+<p>Pour information, l'étape suivante (TP5) consistera à enlever ces mocks et travailler avec les vraies 
+        classes pour valider la bonne <em>intégration</em> des classes entre elles. On parlera alors non 
+    plus de test unitaire, mais de <em>test d'intégration</em>.
+</p>
+        
+<h3>Créer des Mock Objects avec Mockito</h3>
+
+<p>"Mocker" un objet consiste à simuler un objet par un objet factice, présentant les mêmes méthodes, mais dont on va redéfinir 
+    le comportement en vue du passage des tests. Le principe est de permettre de tester une classe X en isolation, même si celle-ci 
+    fait référence à une classe Y, en réalisant un "mock" de la classe Y pour qu'elle se comporte comme il est attendu, même si 
+    elle n'a pas encore été testée ou si les fonctionnalités ne sont pas (encore) présentes dans celle-ci.</p>
+
+<p style="clear: none;">Dans ce TP, la classe <code>Barrier</code> fait référence à deux objets : une instance de 
+    <code>Network</code> et une instance de <code>Ticket</code>. 
+    Pour pouvoir tester la classe <code>Barrier</code> sans reposer sur ces deux autres classes, nous allons "simuler"
+    leur comportement au travers de <em>mock objects</em>.
+</p>   
+         
+<p>D'un point de vue du test, cet aspect (absence de code) ainsi que l'absence de contrôle du résultat d'une méthode 
+    (par exemple parce que celle-ci réalise un calcul aléatoire) posent des problèmes qui peuvent se résoudre en simulant
+    une instance qui se comportera comme on le souhaite (ou comme on en a besoin). Nous allons donc utiliser 
+    Mockito pour : écrire des faux objets (des mocks), qui instancient les classes 
+        <code>ITicket</code> et <code>Network</code> et dont nous allons spécifier le comportement.
+     
+<!--        
+<h4>Utiliser Mockito sans Maven (à ne pas utiliser pour ce TP -- donné pour votre culture)</h4>        
+        
+ <p>Téléchargez <a href="http://site.mockito.org/" target="_blank">Mockito</a>. Mockito v2.x nécessite les bibliothèques suivantes : </p>
+<ul>
+    <li><a href="http://site.mockito.org/" target="_blank">Mockito</a> lui-même : <a href="ressources/mockito-core-2.10.0.jar" download>mockito-core-2.10.0.jar</a></li>
+    <li><a href="http://bytebuddy.net" target="_blank">Byte-buddy</a>, un utilitaire qui permet de manipuler les classes Java à la volée lors de l'exécution de la JVM (nécessaire pour l'exécution de Mockito) : <a href="ressources/byte-buddy-1.7.5.jar" download>byte-buddy-1.7.5.jar</a> et <a href="ressources/byte-buddy-agent-1.7.5.jar" download>byte-buddy-agent-1.7.5.jar</a></li>
+    <li><a href="http://objenesis.org/tutorial.html" target="_blank">Objenesis</a>, un utilitaire spécialisé dans l'instanciation des objets Java (nécessaire pour l'exécution de Mockito) : <a href="ressources/objenesis-2.6.jar" download>objenesis-2.6.jar</a></li>
+</ul>
+<p>Comme précédemment, placez ces bibliothèques dans le répertoire <code>/libs</code> de votre arborescence.</p>
+
+<p>Pour compiler et exécuter les tests avec les mocks, ajoutez les bibliothèques de Mockito au classpath dans les commandes de compilation et d'exécution des tests (règles <code>tests</code> et <code>runtests</code>). </p>
+
+<label for="help32">Besoin d'aide pour ajouter les bibliothèques Mockito pour la compilation ?</label>
+<input type="checkbox" id="help32">
+<p class="terminal">
+    MOCKITO=./libs/mockito-core-2.10.0.jar:./libs/byte-buddy-1.7.5.jar:./libs/byte-buddy-agent-1.7.5.jar:./libs/objenesis-2.6.jar<br> ...
+    <br> tests: <br> &nbsp; &nbsp; &nbsp; &nbsp; $(JAVAC) -cp $(BIN):$(JUNIT):$(MOCKITO) -d $(BIN) $(SRC)/tests/*.java <br> ...
+</p>
+
+<label for="help33">Besoin d'aide pour ajouter les bibliothèques Mockito pour l'exécution des tests ?</label>
+<input type="checkbox" id="help33">
+<p class="terminal">
+    TESTS=tests.testAccount tests.testATM<br> ...
+    <br> $(JAVA) -cp $(BIN):$(JUNIT):$(MOCKITO) org.junit.runner.JUnitCore $(TESTS)
+</p>
+-->
+       
+</p><h3>Utiliser Mockito avec Maven</h3>        
+        
+
+<p>Pour permettre la compilation et l'exécution des tests avec Mockito, il faut ajouter cette dépendance à notre projet, en ajoutant les lignes ci-dessous dans le fichier <code>pom.xml</code>. </p>    
+<p class="terminal">    
+&lt;dependencies&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;dependency&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;groupId&gt;org.mockito&lt;/groupId&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;artifactId&gt;mockito-core&lt;/artifactId&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;version&gt;2.10.0&lt;/version&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;scope&gt;test&lt;/scope&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;/dependency&gt;<br>
+&lt;/dependencies&gt;
+</p>
+        
+<p>La version mentionnée ici <code>2.10.0</code> est normalement compatible avec les installations des salles de TP. Si 
+        vous utilisez une version de Java récente sur votre machine, vous pouvez tenter d'utiliser une version plus récente 
+    de Mockito, comme par exemple la <code>2.23.4</code>. </p>
+        
+<h3>Ecriture du Mock</h3>
+        
+<p>Consultez <a href="https://www.docdoku.com/blog/2015/03/23/tests-unitaires-avec-mockito/">une des nombreuses documentations de Mockito</a> 
+    pour découvrir comment l'utiliser. </p>        
+        
+<p>Nous allons faire un mock assez simple de la classe <code>Ticket</code> qui définira, selon le besoin du test, les 
+    comportements des méthodes qui sont appelées dans le code de votre classe. Par exemple, si vous avez besoin de définir
+    que le ticket utilisé dans le test vous retourne 400 yens, parce que, dans le code de votre classe <code>Barrier</code>, 
+    vous avez la vérification suivante : </p>
+    
+<p class="codesource">...
+<code>class</code> Barrier {
+&nbsp; &nbsp; ...
+&nbsp; &nbsp; <code>public boolean</code> exit(Ticket t) {
+&nbsp; &nbsp; &nbsp; &nbsp; ...
+&nbsp; &nbsp; &nbsp; &nbsp; <code>if</code> (t.getAmount() &gt;= 400) {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <code>return true</code>;
+&nbsp; &nbsp; &nbsp; &nbsp; } 
+&nbsp; &nbsp; &nbsp; &nbsp; ...
+&nbsp; &nbsp; }
+&nbsp; &nbsp; ...
+}
+</p>
+
+<p>Vous pourrez écrire le mock suivant qui créé un objet factice et force à ce que l'appel à <code>getAmount</code> sur 
+        cet objet retourne la valeur <code>400</code>.</p>        
+        
+<p class="codesource">...
+<span class="comments">// Mockito</span>
+<code>import</code> org.mockito.Mockito;
+<code>import</code> org.mockito.junit.MockitoJUnitRunner; 
+...
+<span class="comments">// JUnit</span>
+<code>import</code> org.junit.runner.RunWith; 
+... 
+@RunWith(MockitoJUnitRunner.<code>class</code>)
+<code>public class</code> TestBarrierWithMocks { 
+&nbsp; &nbsp; ... 
+&nbsp; &nbsp; @Test 
+&nbsp; &nbsp; <code>public void</code> testExitWith400YensFare() { 
+&nbsp; &nbsp; &nbsp; &nbsp; <span class="comments">// instanciation du mock</span> 
+&nbsp; &nbsp; &nbsp; &nbsp; ITicket mockTicket = Mockito.mock(ITicket.<code>class</code>); 
+&nbsp; &nbsp; &nbsp; &nbsp; <span class="comments">// définition du comportement attendu pour l'objet</span> 
+&nbsp; &nbsp; &nbsp; &nbsp; Mockito.when(mockTicket.getAmount()).thenReturn(<code>400</code>); 
+&nbsp; &nbsp; &nbsp; &nbsp; ...
+&nbsp; &nbsp; &nbsp; &nbsp; <span class="comments">// objet sous test</span>
+&nbsp; &nbsp; &nbsp; &nbsp; Barrier b = Barrier.build(...);
+&nbsp; &nbsp; &nbsp; &nbsp; ...
+&nbsp; &nbsp; &nbsp; &nbsp; assertEquals(<code>true</code>, b.exit(mockTicket));
+&nbsp; &nbsp; &nbsp; &nbsp; ...
+&nbsp; &nbsp; } 
+&nbsp; &nbsp; ... 
+}
+</p>   
+        
+<p>Avec ce code, l'appel à <code>mockTicket.getAmount()</code> dans la méthode <code>testExitWith400YensFare</code> 
+    sera substitué à la volée par un retour automatique de la valeur spécifiée dans le mock (ici, <code>400</code>), 
+    ce qui permettra de faire passer dans la branche du <code>if</code> souhaitée et ainsi obtenir la valeur de retour
+    <code>true</code>. </p>
+        
+<p>A noter que, pour que le code puisse compiler, il sera nécessaire d'avoir écrit la classe "mockée"
+    avec a minima la signature des méthodes appelées dans la classe utilisatrice. Dans notre cas, l'interface
+    <code>ITicket</code> existe déjà donc ce ne sera pas un souci. </p>
+
+        
+<h3>Ecriture d'un spy (pas utile pour ce TP, mais utile pour votre culture de "testeur/testeuse")</h3>
+    
+<p>Pour ne pas utiliser directement une méthode de la classe courante lorsqu'un test s'exécute (parce que celle-ci 
+    n'est pas encore codée -- si on est en TDD) ou parce que l'on est tout simplement pas sûr de son comportement 
+    (parce qu'elle n'a pas encore été testée), on peut réaliser un substitution d'appel de méthode, un peu sur le même 
+    principe qu'un mock, mais cette fois-ci avec ce qui s'appelle un 
+    <a href="https://www.sodifrance.fr/blog/mockito-spy-simuler-une-partie-de-vos-classes/comment-page-1/" target="_blank">espion 
+                mockito (spy)</a>.  
+</p>
+    
+<p>Ce spy se déclare à partir d'une instance existante de la classe à espionner : </p>
+    <code style="display: block; margin-left: 10%; margin-bottom: 0px;">objetEspionné = Mockito.spy(objetInitial);</code>
+            
+        
+        <p>Il y a deux syntaxes possibles pour paramétrer un spy :</p>
+    <code style="display: block; margin-left: 10%; margin-bottom: 0px;">doReturn(valeurRenvoyee).when(objetEspionné).méthodeAppelée();</code>
+    <p>qui renverra la valeur <code>valeurRenvoyée</code> lorsque l'appel à la <code>méthodeAppelée</code> sera réalisé sur l'<code>objetEspionné</code>, ou </p>
+    <code style="display: block; margin-left: 10%; margin-bottom: 0px;">when(objetEspionné.méthodeAppelée()).thenReturn(valeurRenvoyee);</code>
+    <p>qui renverra aussi la valeur <code>valeurRenvoyée</code> lorsque l'appel à la <code>méthodeAppelée</code> sera réalisé sur
+    l'<code>objetEspionné</code>. </p>
+        
+<p>
+    Mais alors quelle est la différence ? C'est simple : dans le premier cas, la méthode remplacée ne sera pas exécutée (Mockito capture 
+    cet appel et renvoie directement la valeur attendue) tandis que dans le second cas, la méthode remplacée est quand même exécutée, 
+    mais le résutat qu'elle renvoyait initialement est remplacé par la valeur spécifiée. <br>
+    Attention donc au choix d'écriture, car si la méthode à remplacer a un <em>effet de bord</em> (c'est-à-dire qu'elle modifie 
+    des attributs de l'objet courant), vous pouvez avoir besoin de réaliser un appel concret à cette méthode avant de remplacer 
+    la valeur qu'elle renvoie. 
+</p>    
+
+<p>Il est à noter que si les méthodes ne sont pas ainsi redéfinies, c'est leur code d'origine qui s'exécutera.</p>
+    
+<h3>Différence entre mock et spy</h3>
+    
+<p>Quand Mockito créé un mock, il le fait à partir d'une classe ou d'un type, et non à partir d'une vraie instance. Un mock 
+    va donc simplement créer une squelette d'instance de la classe demandée, qui sera instrumentée pour garder trace des 
+    interactions que l'on a avec elle. En ce sens, toutes les méthodes de la classe seront implantée dans l'instance, elle ne
+    feront rien, à part éventuellement 
+    renvoyer une valeur par défaut (en général <code>0</code> pour une valeur numérique, <code>null</code> si la méthode
+    renvoie un objet, etc.).</p>    
+    
+<p>Quand Mockito réalise un spy, il le fait en encapsulant une instance existance. Celle-ci se comporte comme une instance 
+    normale, mais qui sera aussi instrumentée. On comprend donc la différence de traitement possible pour les spy, selon 
+    que l'on souhaite, ou non, réaliser l'appel à la méthode initialement existante de l'instance espionnée. </p>
+    
+    
+<h2>Travail à réaliser</h2>      
+        
+<p>Le travail à réaliser est le suivant :</p>        
+        
+<ol>
+    <li>Ecrivez le code de la classe <code>Barrier</code></li>
+    <li>Ecrivez des tests unitaires <code>TestBarrierWithMocks</code> pour la classe <code>Barrier</code> 
+        en utilisant Mockito pour mocker des objets <code>Network</code> et <code>ITicket</code>
+    </li>
+</ol>
+            
+    
+<h3>Travail à rendre</h3>
+        
+<p>Il n'y aura pas de rendu cette semaine. </p>
+
+<p>Contrairement aux TP précédents, vous allez écrire ici des tests qui seront forcément propres à votre implantation
+    (puisque vous allez définir des mocks en fonction de ce que vous avez écrit comme code dans <code>Barrier</code>).
+    Si on cherche à passer vos tests sur un autre code, pour peu que les appels à mocker ne correspondent pas, leur 
+    exécution sera faussée. On aura le même problème, à l'inverse, si on cherche à passer d'autres tests sur votre code. <br> 
+    Votre code ne pourrait donc pas être évalué comme les TP précédents. 
+</p>
+
+
+    </main>
+
+
+
+
+<script id="define-custom-element-wtd-root">
+      (() => {
+        window.customElements.whenDefined('wtd-root').then(() => {
+          window.dispatchEvent(
+            new CustomEvent('customElements.defined', {
+                detail: {
+                  name: 'wtd-root',
+                },
+            }),
+          );
+        });
+
+        if (window.customElements.get('wtd-root')) return;
+
+        window.customElements.define('wtd-root', class extends HTMLElement {
+          constructor() {
+            super();
+            this.attachShadow({ mode: 'open' });
+          }
+        });
+      })();
+    </script><wtd-root id="cashback"><template shadowrootmode="open"><div id="root"></div><link rel="stylesheet" href="chrome-extension://emnoomldgleagdjapdeckpmebokijail/tailwind/tailwind.css"></template></wtd-root><script id="define-custom-element-wtd-div">
+      (() => {
+        window.customElements.whenDefined('wtd-div').then(() => {
+          window.dispatchEvent(
+            new CustomEvent('customElements.defined', {
+                detail: {
+                  name: 'wtd-div',
+                },
+            }),
+          );
+        });
+
+        if (window.customElements.get('wtd-div')) return;
+
+        window.customElements.define('wtd-div', class extends HTMLElement {
+          constructor() {
+            super();
+            
+          }
+        });
+      })();
+    </script><wtd-div id="wanteeedContainer" style="position: fixed; display: block; top: 0px; right: 0px; z-index: 2147483647;"><wtd-root id="comparator"><template shadowrootmode="open"><div id="root"><div class="pointer-events-none z-[2147483647] flex select-none flex-col items-end overflow-hidden font-sans antialiased"></div></div><link rel="stylesheet" href="chrome-extension://emnoomldgleagdjapdeckpmebokijail/tailwind/tailwind.css"></template></wtd-root><iframe id="wanteeedPanel" data-version="1.118.0" allowtransparency="true" style="background-color: rgb(255, 255, 255); border: none; border-radius: 3px; box-shadow: rgb(181, 181, 181) 1px 1px 3px 2px; clip: auto; display: none; margin-left: auto; margin-right: 12px; margin-top: 12px; position: relative; z-index: 2147483647; height: 1px; width: 1px;" src="./Outils pour la Programmation - TP4_files/saved_resource.html"></iframe></wtd-div><iframe id="wanteeedTestMaker" data-version="1.118.0" allowtransparency="true" style="border: none; clip: auto; display: none; left: 0px; overflow: hidden; position: fixed; top: 10px; transition: all 0.2s ease-out 0s; z-index: 45739864; height: 1px; width: 1px;" src="./Outils pour la Programmation - TP4_files/saved_resource(1).html"></iframe></body></html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<!-- saved from url=(0084)https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/2/TP5.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>Outils pour la Programmation - TP5</title>
+    <link rel="stylesheet" type="text/css" href="./Outils pour la Programmation - TP5_files/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com/"><link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin=""><link rel="stylesheet" href="./Outils pour la Programmation - TP5_files/css2" class="wtd-font"><link rel="stylesheet" href="./Outils pour la Programmation - TP5_files/css2(1)" class="wtd-font"></head>
+
+<body>
+
+<div id="bcPage">
+
+    <header>    
+    
+    <h1>Outils pour la programmation - Travaux pratiques</h1>
+
+    <h1 class="pluspetit">TP5 - Tests d'intégration</h1>
+
+    </header>
+        
+    <p style="text-decoration:underline;">Objectifs du TP :</p>
+
+    <ul>
+        <li>Réaliser des tests d'intégration</li>
+        <li>Comprendre la différence entre test unitaire et test d'intégration
+    </li></ul>
+    
+       <h2>Description de l'application à tester</h2>
+
+        <p>La description complète est <a href="https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/2/sujet.html" target="_blank">disponible ici</a>. Le modèle de données considéré est rappellé ci-dessous :</p>
+
+        <img src="./Outils pour la Programmation - TP5_files/DiagrammeClasse.png" alt="Diagramme de classes" class="figure" style="max-width: 700px;">
+
+        <p>Dans ce TP, nous allons nous focaliser sur la classe <code>Barrier</code> qui permet d'autoriser le passage ou non 
+        d'un usage pour accéder au métro ou en sortir. On rappelle que les barrières peuvent être utilisées indifféremment 
+        pour entrer ou pour sortir (elles fonctionnent dans les deux sens). </p>
+
+    <h3>Avant de commencer...</h3>
+    
+    
+    <p>Vous pouvez prendre l'implémentation suivante de la classe <code>BaseTicket</code> 
+        (fichier <a href="https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/2/java/BaseTicket.java">BaseTicket.java</a>) qui peut être vu comme
+        la version correcte des différentes implantations proposées au TP3.
+        
+    </p><p>Si vous le souhaitez, vous pouvez supprimer la dépendance dans le fichier <code>pom.xml</code> 
+        qui référençait le fichier <code>BaseTickets.jar</code> utilisé au TP3. Dans ce cas, 
+        retirez les suffixe <code>01</code> à <code>18</code> de la classe utilisée dans vos tests
+        pour faire passer vos tests sur cette classe.  
+    </p>
+        
+    
+        
+<h3>Ecriture de tests d'intégration</h3>
+    
+<p>Vous arrivez à l'étape consistant à écrire des tests d'intégration qui vérifient que les classes
+    actuellement existantes intéragissent correctement entre elles. </p>
+    
+<p>Ecrivez ces tests dans un fichier nommé <code>TestBarrierIntegration.java</code></p>
+    
+<p>Vous pouvez partir de tests écrits pour la barrière et les tickets, dans lequels vous remplacez les mocks par 
+    les vrais objets. </p>
+    
+<p>Remarque : les tests d'intégration vont nécessiter d'employer toutes les classes de l'application conjointement. De 
+    ce fait, même si on teste la bonne intégration de ces éléments, les scénarios de test sont proches de scénarios
+    de test de recette (test fonctionnel au niveau du système dans son ensemble). </p>
+    
+<p>Deux points importants : </p>
+    
+<ul>
+    <li>La barrière est supposée faire changer l'état du ticket qui lui est passé, que ce soit à l'entrée ou à la sortie. 
+    En entrée, elle inscrit sur le ticket le nom de la station où elle se trouve. A la sortie, si le ticket permet la 
+    sortie de l'usager, il doit être invalidé (le ticket, pas l'usager), de façon à éviter qu'un même ticket soit 
+    réutilisé par un autre usager pour franchir à nouveau la barrière de sortie. </li>
+    <li>Si vous êtes/étiez/avez été en difficulté sur l'écrire de la méthode <code>distance</code> dans la classe <code>Network</code>
+    vous pouvez considérer le cas simple où le trajet entre les stations s'effectue sur la même ligne. Le calcul de 
+        la distance n'est normalement pas trop compliqué et ne nécessite pas la mise en oeuvre d'algorithmes complexes. 
+        Cette restriction n'est pas limitante concernant les tests d'intégration.</li>
+</ul>
+    
+
+<h3>Travail à rendre</h3>
+
+<p>Déposez sur Moodle, dans le dépôt prévu à cet effet les fichiers <code>Barrier.java</code> et 
+    <code>TestBarrierIntegration.java</code>, d'ici la prochaine séance de TP. </p> 
+    
+</div>
+
+
+
+
+<script id="define-custom-element-wtd-root">
+      (() => {
+        window.customElements.whenDefined('wtd-root').then(() => {
+          window.dispatchEvent(
+            new CustomEvent('customElements.defined', {
+                detail: {
+                  name: 'wtd-root',
+                },
+            }),
+          );
+        });
+
+        if (window.customElements.get('wtd-root')) return;
+
+        window.customElements.define('wtd-root', class extends HTMLElement {
+          constructor() {
+            super();
+            this.attachShadow({ mode: 'open' });
+          }
+        });
+      })();
+    </script><wtd-root id="cashback"><template shadowrootmode="open"><div id="root"></div><link rel="stylesheet" href="chrome-extension://emnoomldgleagdjapdeckpmebokijail/tailwind/tailwind.css"></template></wtd-root><script id="define-custom-element-wtd-div">
+      (() => {
+        window.customElements.whenDefined('wtd-div').then(() => {
+          window.dispatchEvent(
+            new CustomEvent('customElements.defined', {
+                detail: {
+                  name: 'wtd-div',
+                },
+            }),
+          );
+        });
+
+        if (window.customElements.get('wtd-div')) return;
+
+        window.customElements.define('wtd-div', class extends HTMLElement {
+          constructor() {
+            super();
+            
+          }
+        });
+      })();
+    </script><wtd-div id="wanteeedContainer" style="position: fixed; display: block; top: 0px; right: 0px; z-index: 2147483647;"><wtd-root id="comparator"><template shadowrootmode="open"><div id="root"><div class="pointer-events-none z-[2147483647] flex select-none flex-col items-end overflow-hidden font-sans antialiased"></div></div><link rel="stylesheet" href="chrome-extension://emnoomldgleagdjapdeckpmebokijail/tailwind/tailwind.css"></template></wtd-root><iframe id="wanteeedPanel" data-version="1.118.0" allowtransparency="true" style="background-color: rgb(255, 255, 255); border: none; border-radius: 3px; box-shadow: rgb(181, 181, 181) 1px 1px 3px 2px; clip: auto; display: none; margin-left: auto; margin-right: 12px; margin-top: 12px; position: relative; z-index: 2147483647; height: 1px; width: 1px;" src="./Outils pour la Programmation - TP5_files/saved_resource.html"></iframe></wtd-div><iframe id="wanteeedTestMaker" data-version="1.118.0" allowtransparency="true" style="border: none; clip: auto; display: none; left: 0px; overflow: hidden; position: fixed; top: 10px; transition: all 0.2s ease-out 0s; z-index: 45739864; height: 1px; width: 1px;" src="./Outils pour la Programmation - TP5_files/saved_resource(1).html"></iframe></body></html>

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<!-- saved from url=(0084)https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/2/TP6.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>Outils pour la Programmation - TP6</title>
+    <link rel="stylesheet" type="text/css" href="./Outils pour la Programmation - TP6_files/style.css">
+    <style>
+        p {
+            clear: none;
+        }
+        table.bordered, table.bordered tr > * {
+             border: solid 1px #000;  
+        }
+    </style>
+<link rel="preconnect" href="https://fonts.googleapis.com/"><link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin=""><link rel="stylesheet" href="./Outils pour la Programmation - TP6_files/css2" class="wtd-font"><link rel="stylesheet" href="./Outils pour la Programmation - TP6_files/css2(1)" class="wtd-font"></head>
+
+<body>
+
+    <main>
+
+        <header>
+            <h1>Outils pour la programmation - Travaux pratiques</h1>
+            <h1 class="pluspetit">TP6 - Debugging et visiteur</h1>
+        </header>
+
+        <p style="text-decoration:underline;">Objectifs du TP :</p>
+
+        <ul>
+            <li>Prendre en main un debugger pour exécuter un programme en pas-à-pas. </li>
+            <li>Ecrire un visiteur qui parcourt une structure d'objet composite.</li>
+        </ul>
+
+       
+       <h2>Description de l'application à tester</h2>
+
+        <p>La description complète est <a href="https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/2/sujet.html" target="_blank">disponible ici</a>. Le modèle de données considéré est rappellé ci-dessous :</p>
+
+        <img src="./Outils pour la Programmation - TP6_files/DiagrammeClasse.png" alt="Diagramme de classes" class="figure" style="max-width: 700px;">
+
+
+        <p>Dans ce TP, nous allons nous focaliser sur une ensemble de classes annexe qui a pour objectif de réaliser
+        l'analyse lexicale et syntaxique d'un texte pour instancier un réseau et ses stations associées. </p>
+
+
+        <h3>Description du package <code>parser</code></h3>
+
+        <p>Le package <code>parser</code> est un ensemble de classes permettant de réaliser l'analyse lexicale et syntaxique
+        d'un fichier texte décrivant les stations d'une ville. C'est ce fichier qui servira à instancier les stations. 
+        </p>
+
+        <p>Comme vous le verrez au semestre 6 dans le module intitulé "Analyse syntaxique et XML", l'analyse syntaxique 
+        d'un texte s'appuie habituellement sur : </p>
+        
+        <ol>
+            <li>un découpage du texte en lexèmes, également appelés "tokens" qui représentent les éléments de base 
+            du langage. Ceux-ci sont généralement extraits par découpage du texte suivant des séparateurs, et reconnus
+            via des expressions régulières. Il va s'agir de reconnaître les éléments importants (identificateurs, mot-clés
+            réservés du texte, symboles servant de séparateurs ou de délimiteurs, etc.). </li>
+            <li>une analyse de l'enchaînement des lexèmes et de leur agencement sur la base d'une <em>grammaire</em>
+            qui décrit quels enchaînements/structures sont autorisées. </li>
+            <li>un arbre de syntaxe abstraite, qui est une structure logique permettant de représenter en mémoire le 
+                texte qui a été analysé, si celui-ci est correctement structuré par rapport aux règles de grammaires.
+                Cet arbre est ensuite parcouru pour généralement réaliser des traitements sur le contenu du texte, 
+                comme des vérifications statiques ou la traduction/l'export vers un autre format.
+            </li>
+        </ol>
+        
+        <p>La figure ci-dessous résume ces trois aspects. </p>
+        <img src="./Outils pour la Programmation - TP6_files/lexer-parser.png" class="figure" style="max-width: 95%; width: 95%; height: auto;">
+        
+        
+        <p>Pour le TP qui nous intéresse cette semaine, l'analyseur syntaxique (la suite <em>lexer</em> + <em>parser</em>) 
+            ainsi implémenté réalise toutes ces étapes, et produit une instance d'arbre représentant le contenu d'un fichier donné en 
+            entrée du processus. 
+        </p>
+        
+        <p>Un exemple de fichier de configuration est le suivant : </p>
+        <pre>ligne "Namboku" { 
+     "Asabu": 0,
+     "Kita-Sanjūyo-Jō": 1.0,
+     "Kita-Nijūyo-Jō": 2.2,
+     "Kita-Jūhachi-Jō": 3.1,
+     ...
+}
+ligne "Tōzai" { 
+     ...
+}
+...
+        </pre>
+        
+        <p>La grammaire qui est implémentée dans le parser est la suivante : </p>     
+        
+        <table>
+        <tbody><tr>
+            <td>ListeLignes</td><td>::=</td><td>( Ligne )* </td>
+        </tr>
+        <tr>
+            <td>Ligne</td><td>::=</td><td>&lt;ligne&gt; &lt;chaine&gt; &lt;accolade_o&gt; Declaration ( &lt;virgule&gt; Declaration )* &lt;accolade_f&gt; </td>
+        </tr>
+        <tr>
+            <td>Declaration</td><td>::=</td><td>&lt;chaine&gt; &lt;deux_points&gt; &lt;nombre&gt;</td>  
+        </tr>
+        </tbody></table>
+        
+        <p>Cette grammaire contient 3 règles de production dans lesquelles les lexèmes sont repérés entre chevrons. 
+            Leur définition est donnée ci-dessous : </p>
+        
+        <table class="bordered">
+        <tbody><tr>
+            <th>Lexème</th><th>Description</th><th>Exemples</th>    
+        </tr>
+        <tr>
+            <td>&lt;ligne&gt;</td><td>Le mot-clé <code>ligne</code> (insensible à la casse)</td><td><code>ligne</code>, <code>Ligne</code>, <code>LIGNE</code>, <code>lIGnE</code></td>    
+        </tr>
+        <tr>
+            <td>&lt;chaine&gt;</td><td>Une chaîne délimitée par des doubles-quotes <code>"</code><br>
+            (sans <code>"</code> à l'intérieur, même protégées par un <code>\</code>)</td><td><code>"Namboku"</code>, <code>"Kita-Sanjūyo-Jō"</code>, <code>""</code></td>    
+        </tr>
+        <tr>
+            <td>&lt;accolade_o&gt;</td><td>Le symbole d'accolade ouvrante</td><td><code>{</code></td>
+        </tr>
+        <tr>
+            <td>&lt;accolade_f&gt;</td><td>Le symbole d'accolade fermante</td><td><code>}</code></td>
+        </tr>
+        <tr>
+            <td>&lt;deux_points&gt;</td><td>Le symbole deux points</td><td><code>:</code></td>
+        </tr>
+        <tr>
+            <td>&lt;virgule&gt;</td><td>Le symbole virgule</td><td><code>,</code></td>
+        </tr>
+        <tr>
+            <td>&lt;nombre&gt;</td><td>Une suite de chiffres, éventuellement avec partie décimale</td><td><code>42</code>, <code>4.266</code></td>
+        </tr>
+            
+        </tbody></table>
+        
+        
+        <p>Les classes issues du package <code>parser</code> ont pour objectif d'implémenter au mieux ce qui est décrit ci-dessus. 
+            Attention, il y a parfois des raccourcis qui sont pris, notamment dans la gestion des tokens. Toutefois, l'idée est 
+            que le parser accepte des textes qui respectent la grammaire, et rejette des textes qui ne la respectent pas. 
+            Ces classes sont les suivantes :</p>
+        
+        <ul>
+            <li><code>Token</code> est une classe générique gérant les tokens. Chaque token a pour valeur une chaîne de caractères 
+                spécifique, et enregistre la position à laquelle il se trouve dans le fichier (ligne, colonne).
+            </li>
+            <li><code>NetworkFileTokenizer</code> est une classe utilitaire dont la seule méthode (statique) nommée <code>Tokenize(File)</code> a pour objectif de réaliser l'analyse lexicale du fichier passé en paramètre, en le convertissant en une liste 
+            d'instances de <code>Token</code>. </li>
+            <li><code>NetworkParser</code> est une classe codée comme un singleton qui permet de réaliser l'analyse syntaxique 
+            d'un fichier. Ce traitement s'appuie sur l'utilisation de la classe <code>NetworkFileTokenizer</code> qui prend en 
+            charge l'analyse lexicale en amont. En cas d'erreur lors de l'analyse syntaxique, une exception de type 
+            <code>NetworkParserException</code> est déclenchée. </li>
+            <li><code>ASTNode</code> et ses sous-classes associées (par ordre alphabétique : <code>ASTChaine</code>, <code>ASTDeclaration</code>, <code>ASTLigne</code>), <code>ASTListeLignes</code> et <code>ASTNombre</code> sont des classes permettant de décrire les noeuds de l'arbre de 
+            syntaxe abstraite représentant le texte une fois celui-ci reconnu par le parseur. Cette structure d'arbre accepte des 
+            visiteurs (cf. Cours 3 sur les Design Patterns) qui réalisent l'interface <code>ASTNodeVisiteur</code>. 
+            </li>
+            <li><code>NetworkBuilder</code> est un visiteur qui permet la construction d'un réseau à partir d'un fichier
+            correctement écrit. Attention, le respect de la syntaxe du fichier est garanti par l'étape d'analyse syntaxique ; toutefois, 
+            certaines vérifications complémentaires seront nécessaires pour s'assurer que le contenu du fichier présente les bonnes informations, notamment les contraintes de validité du réseau ; ceci fera l'objet d'un visiteur spécifique qui 
+                sera à écrire durant ce TP.  </li>
+        </ul>
+                
+        
+        <p>Un ensemble de tests associés à ces classes vous sont également fournis pour vous permettre d'appréhender le fonctionnement
+        et l'utilisation de celles-ci. 
+        </p>
+        
+        <h2>Travail à réaliser</h2>
+
+        <ol>
+            <li>Récupérez les <a href="https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/2/java/parser.zip" target="_blank">classes du package <code>parser</code></a> et ajoutez-les à votre projet. </li>
+            
+            <li>Récupérez les <a href="https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/2/java/NetworkParserTest.java" target="_blank">tests du package <code>parser</code></a> 
+                et ajoutez-les à votre projet. Ces tests s'appuient sur
+                un <a href="https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/2/java/metroOK.txt" target="_blank">fichier texte de description de lignes de métro</a> qui sera à placer 
+                dans le répertoire 
+                <code>/src/main/resources</code> (attention à bien l'écrire "resources" avec un seul "s" au milieu, 
+                ne l'écrivez pas "ressources" sinon ce qui suit ne fonctionnera pas). Le contenu de ce dossier sera 
+                automatiquement copié, à la construction du projet, 
+                dans le répertoire <code>/target/classes</code> de votre projet Maven (conseil : placez ces fichiers
+                annexes dans un dossier <code>data</code> conformément aux tests déjà écrits). 
+            </li>
+            
+            <li>Vous constaterez que le dernier test <code>testNetworkBuilder</code> échoue. Vous n'aurez sûrement pas de mal 
+                à comprendre quelle est l'erreur. Toutefois, la localiser pour la corriger ne sera pas chose aisée. 
+                Utilisez le debugger de IntelliJ pour exécuter le code en pas-à-pas et comprendre son fonctionnement
+                (voir ci-dessous). <br>
+                Ce passage devrait vous permettre d'appréhender le fonctionnement d'un visiteur (allers/retours entre 
+                les méthodes <code>visit</code> et <code>accept</code> vues en cours). 
+            </li>
+            
+            <li>Complétez les tests du parseur en écrivant quelques tests lisant des fichiers syntaxiquement erronés,
+                pour vous assurer que celui-ci fonctionne correctement. </li>
+            
+            <li>Ecrire un visiteur nommé <code>ASTCheckerVisitor</code> qui permet de vérifier que le fichier décrit effectivement
+                un réseau valide (comme décrit dans le TP2) :
+                <ul>
+                    <li>Le fichier n'est pas vide.</li>
+                    <li>Les noms des lignes sont uniques dans le fichier.</li>
+                    <li>Le nom des lignes n'est pas une chaîne vide ou assimilée (par exemple ne contenant que des espaces ou des
+                        tabulations).</li>
+                    <li>Chaque station a un nom unique pour une ligne donnée. </li>
+                    <li>Les noms de stations ne sont pas des chaînes vides ou assimilées.</li>
+                    <li>La valeur numérique associée au nom de station est un entier positif ou nul qui peut, ou pas, contenir
+                        une partie décimale.</li>
+                    <li>Les déclarations sont ordonnées, et donc les nombres associés aux noms de stations suivent 
+                        un ordre strictement croissant, en commençant à 0. 
+                    </li>
+                    <li>Toutes les lignes décrites sont accessibles entre elles. </li>
+                </ul>
+                Le squelette du code de ce visiteur vous est <a href="https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/2/java/ASTCheckerVisitor.java" target="_blank">fourni ici</a>.
+                Vous constaterez qu'il possède une méthode publique nommée <code>getErrors()</code> qui renvoie l'ensemble 
+                des erreurs rencontrées sous la forme d'une map associant à chaque message d'erreur son type (énuméré ERROR_KIND
+                représentant les cas d'erreurs listés ci-dessus). </li>
+            
+            <li>Ecrivez les tests nécessaires pour valider le bon fonctionnement de votre visiteur dans une classe de test <code>ASTCheckerVisitorTest</code>. Comme il n'y a pas de format particulier attendu sur le format des messages
+                d'erreur, il est déconseillé de réaliser des assertions sur le contenu de ces textes. Toutefois, vous pouvez 
+                vérifier que le type des erreurs remontées, et leur nombre, correspond bien à ceux que vous attendez.  
+            </li>
+            
+        </ol>
+
+        
+        <h2>Utiliser un debugger</h2>
+        
+        <p>Les IDE sont généralement équipés d'un debugger. Il s'agit d'un outil qui permet de déclarer des points d'arrêts, 
+            à partir desquels il est ensuite possible d'exécuter le code en pas-à-pas, en visualisant, à chaque étape, les 
+            valeurs des différentes variables du programme (que ce soient des types primitifs, ou des objets qu'il sera possible
+            de détailler, ou des collections dont il sera possible de visualiser le contenu). 
+        </p>    
+        
+        <p>L'objectif est d'éviter le debugging à grands renforts de <code>printf</code> (ou équivalent) dont vous êtes relativement 
+        friands (si, si...)</p>
+        <img src="./Outils pour la Programmation - TP6_files/debugging-meme.jpg" style="width: 50%; height: auto; display: block; margin: 0px auto;">
+        
+        <h3>Comment utiliser le debugger de IntelliJ ?</h3>
+        
+        <ol>    
+            <li>Il faut tout d'abord placer un point d'arrêt (également appelé breakpoint), en cliquant dans la marge où se trouvent les
+            numéros de ligne, en face de la ligne où vous souhaitez placer le breakpoint. <br> 
+            <img src="./Outils pour la Programmation - TP6_files/debugger-1.png"> </li>
+            
+            <li>Il faut ensuite exécuter le programme/les tests en mode debug, dans le menu habituel. En général l'icône correspondante
+            fait apparaître un petit insecte. <br> 
+            <img src="./Outils pour la Programmation - TP6_files/debugger-2.png"> <img src="./Outils pour la Programmation - TP6_files/debugger-3.png"> </li>
+        
+            <li>Le programme s'exécutera ensuite jusqu'au point d'arrêt, où il s'arrêtera pour vous ouvrir une interface contenant
+            en bas à droite un aperçu de l'environnement d'exécution actuel (les variables et leurs valeurs) et dans la partie 
+            gauche, les informations liées à l'exécution courante (pile d'appels) et les commandes possibles pour continuer l'exécution. 
+                On notera que le code est également annoté avec les valeurs des paramètres en gris dans l'éditeur. <br> 
+            <img src="./Outils pour la Programmation - TP6_files/debugger-4.png"><br>
+                Les commandes utiles (symbolisées par les petites icônes avec des flèches bleues et rouges) sont détaillées <a href="https://www.jetbrains.com/help/idea/stepping-through-the-program.html" target="_blank">dans cette page</a> d'aide de JetBrains. 
+            </li>
+        </ol>
+                
+        
+        
+        <h3>Travail à rendre</h3>
+
+        <p>Déposez, dans le dépôt Moodle prévu à cet effet : </p>
+        
+        <ul>
+            <li>la classe <code>NetworkParserTest</code> complétée par vos soins (item 4.)</li>
+            <li>la classe <code>ASTCheckerVisitor</code> que vous avez réalisée (item 5.)</li>
+            <li>les tests associés dans la classe <code>ASTCheckerVisitorTest</code> que vous avez réalisée (item 6.)</li>
+            <li>un zip des fichiers de tests utilisés (vous pouvez zipper tout le dossier "resources")</li>
+        </ul>
+
+        <p>Le travail sera à rendre pour la fin de la semaine de la rentrée (dimanche 12 novembre). </p>
+
+    </main>
+
+
+
+
+<script id="define-custom-element-wtd-root">
+      (() => {
+        window.customElements.whenDefined('wtd-root').then(() => {
+          window.dispatchEvent(
+            new CustomEvent('customElements.defined', {
+                detail: {
+                  name: 'wtd-root',
+                },
+            }),
+          );
+        });
+
+        if (window.customElements.get('wtd-root')) return;
+
+        window.customElements.define('wtd-root', class extends HTMLElement {
+          constructor() {
+            super();
+            this.attachShadow({ mode: 'open' });
+          }
+        });
+      })();
+    </script><wtd-root id="cashback"><template shadowrootmode="open"><div id="root"></div><link rel="stylesheet" href="chrome-extension://emnoomldgleagdjapdeckpmebokijail/tailwind/tailwind.css"></template></wtd-root><script id="define-custom-element-wtd-div">
+      (() => {
+        window.customElements.whenDefined('wtd-div').then(() => {
+          window.dispatchEvent(
+            new CustomEvent('customElements.defined', {
+                detail: {
+                  name: 'wtd-div',
+                },
+            }),
+          );
+        });
+
+        if (window.customElements.get('wtd-div')) return;
+
+        window.customElements.define('wtd-div', class extends HTMLElement {
+          constructor() {
+            super();
+            
+          }
+        });
+      })();
+    </script><wtd-div id="wanteeedContainer" style="position: fixed; display: block; top: 0px; right: 0px; z-index: 2147483647;"><wtd-root id="comparator"><template shadowrootmode="open"><div id="root"><div class="pointer-events-none z-[2147483647] flex select-none flex-col items-end overflow-hidden font-sans antialiased"></div></div><link rel="stylesheet" href="chrome-extension://emnoomldgleagdjapdeckpmebokijail/tailwind/tailwind.css"></template></wtd-root><iframe id="wanteeedPanel" data-version="1.118.0" allowtransparency="true" style="background-color: rgb(255, 255, 255); border: none; border-radius: 3px; box-shadow: rgb(181, 181, 181) 1px 1px 3px 2px; clip: auto; display: none; margin-left: auto; margin-right: 12px; margin-top: 12px; position: relative; z-index: 2147483647; height: 1px; width: 1px;" src="./Outils pour la Programmation - TP6_files/saved_resource.html"></iframe></wtd-div><iframe id="wanteeedTestMaker" data-version="1.118.0" allowtransparency="true" style="border: none; clip: auto; display: none; left: 0px; overflow: hidden; position: fixed; top: 10px; transition: all 0.2s ease-out 0s; z-index: 45739864; height: 1px; width: 1px;" src="./Outils pour la Programmation - TP6_files/saved_resource(1).html"></iframe></body></html>

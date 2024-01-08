@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<!-- saved from url=(0084)https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/2/TP3.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>Outils pour la Programmation - TP3</title>
+    <link rel="stylesheet" type="text/css" href="./Outils pour la Programmation - TP3_files/style.css">
+     <style>
+        #danstonbip { display: none; }
+        #danstonbip span { display: block; margin-left: 30px; }
+        #danstonbip h4 { margin: 5px auto; }
+        #danstonbip > div { width: 30%; }
+        #cbListe:checked ~ #danstonbip {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            align-content: space-around;
+            justify-content: space-around;
+        }
+        
+    </style>
+<link rel="preconnect" href="https://fonts.googleapis.com/"><link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin=""><link rel="stylesheet" href="./Outils pour la Programmation - TP3_files/css2" class="wtd-font"><link rel="stylesheet" href="./Outils pour la Programmation - TP3_files/css2(1)" class="wtd-font"></head>
+
+<body>
+
+    <main>
+
+    <header>
+
+    <h1>Outils pour la programmation - Travaux pratiques</h1>
+
+    <h1 class="pluspetit">TP3 - Test boîte noire</h1>
+
+    </header>
+
+    <h3>Objectifs du TP :</h3>
+
+    <ul>
+        <li>Consolider vos acquis des TP précédents sur l'écriture de tests unitaires.</li>
+        <li>Ecrire des tests à partir d'une spécification pour tester une classe en boîte noire.</li>
+    </ul>
+
+        
+    <h2>Description de l'application à tester</h2>
+
+    <p>La description complète est <a href="https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/2/sujet.html" target="_blank">disponible ici</a>. Le modèle de données considéré est rappellé ci-dessous :</p>
+
+    <img src="./Outils pour la Programmation - TP3_files/DiagrammeClasse.png" alt="Diagramme de classes" class="figure" style="max-width: 700px;">
+
+    <p>Dans ce troisième TP, nous allons travailler sur l'interface <code>ITicket</code> et une implémentation 
+        de celle-ci <code>BaseTicket</code>. Le code compilé de l'implémentation vous sera fourni, ainsi que la 
+        spécification informelle du comportement attendu des méthodes. 
+        Vous devez chercher les erreurs dans les implantations proposées de la classe. 
+    </p>
+        
+    
+    <h3>Spécification de l'interface <code>ITicket</code></h3>    
+        
+    <p>Le ticket a pour vocation d'être acheté par le voyageur à une borne, puis inséré dans une barrière d'entrée, 
+        et enfin réinséré dans une barrière de sortie pour permettre au voyageur de ressortir du métro. Si nécessaire, 
+        il est possible d'ajuster le montant du solde pour augmenter celui-ci. 
+    </p>
+    
+    <p>L'interface <code>ITicket</code> ne s'appuie pas sur les autres classes du modèle de données. Elle offre des services
+        permettant d'interroger sur le type de ticket, son montant provisionné, ainsi que son éventuelle station d'entrée. 
+        Différents services proposés permettent de faire évoluer l'état du cycle de vie du ticket, représenté par la 
+        machine à états ci-dessous :
+    </p>
+        
+    <img src="./Outils pour la Programmation - TP3_files/statechart-ticket.png" class="figure" style="width: 600px;" id="statechart">
+
+        
+    <p>Lorsqu'il est créé, le ticket est édité (état <code>ISSUED</code>). 
+        Au moment où le voyageur franchit une barrière d'entrée (symbolisé par la méthode <code>entering</code>), 
+        l'état passe à <code>ENTERED</code>. Quand l'usager franchit une barrière de sortie, celle-ci invalide
+        le ticket (le faisant passer dans l'état <code>INVALID</code>) pour se prémunir d'une utilisation ultérieure du ticket.     
+        
+    </p><p>L'API proposée par la classe <code>ITicket</code> est la suivante :</p>    
+        
+    <ul>
+    
+        <li><code>public boolean isChild()</code> permet de savoir si le ticket est un ticket enfant (valeur 
+            <code>true</code> renvoyée) ou adulte (valeur <code>false</code> renvoyée). Ceci s'appliquera 
+            quel que soit l'état du ticket. </li>
+    
+        <li><code>public int getAmount()</code> permet de récupérer le solde contenu sur le ticket, quelque 
+            soit l'état du ticket. </li>
+
+        <li><code>public boolean entering(String name)</code> permet d'enregistrer l'entrée à une station avec ce ticket. 
+        Le nom de le station est passé en paramètre. Cette méthode renvoie un booléen qui sera <code>true</code>
+        si le ticket est dans le bon état de son cycle de vie (état <code>ISSUED</code> - voir 
+        <a href="https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/2/TP3.html#statechart">ci-dessus</a>) et que le paramètre n'est pas une chaîne vide ou <code>null</code>. 
+            Dans tous les autres cas, la valeur renvoyée est <code>false</code>
+            et le ticket est automatiquement invalidé. </li>
+        
+        <li><code>public void invalidate()</code> a pour effet d'invalider le ticket pour l'empêcher d'être (ré)utilisé. 
+        </li>
+        
+        <li><code>public String getEntryStation()</code> renvoie le nom de la station à laquelle le ticket 
+        a été utilisé pour entrer. Si le ticket n'est pas dans le bon état de son cycle de vie (dans l'état 
+        <code>ENTERED</code>), la méthode renvoie <code>null</code>.</li>
+        
+        <li><code>public boolean isValid()</code> permet de savoir si le ticket est invalide 
+            (valeur <code>false</code> indiquant un ticket dans l'état <code>INVALID</code>), ou s'il est 
+            valide (valeur <code>true</code>).  
+        </li>
+        
+    </ul>
+        
+    <p>L'interface <code>ITicket</code> est disponible dans <a href="https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/2/java/ITicket.java" target="_blank">ce fichier ITicket.java</a>.
+        Cette interface est à ajouter aux sources de votre projet. </p>    
+        
+    <p>L'implémentation fournie pour la classe <code>BaseTicket</code> réalise les méthodes ci-dessus, et 
+        propose le constructeur suivant : </p>
+        
+    <ul>
+        <li><code>protected BaseTicket(boolean child, int amount)</code> initialise 
+        un ticket avec la somme d'argent passée en paramètre. Si la somme est négative, le ticket est bien créé, 
+        mais avec un solde nul. </li>
+    </ul>
+     
+    
+    <p>La classe <code>AdjustedTicket</code> est une classe réalisée avec un patron de conception "décorateur" 
+        qui permettra de redéfinir un comportement à un ticket, qui consiste à lui augmenter sa valeur
+        provisionnée. L'implémentation de la classe <code>AdjustedTicket</code> devra permettre de créer un
+        ticket ajusté avec le constructeur suivant : </p>
+        
+    <ul>
+        <li><code>protected AdjustedTicket(ITicket initial, int amount)</code> créé un nouveau ticket à partir d'un 
+            ticket initial dont la provision d'argent est augmentée du montant passé en second paramètre. On fera
+            en sorte que le montant ne puisse pas diminuer la provision initialement passée sur le ticket. <br>
+            Si on passe en paramètre un ticket initial <code>null</code>, le constructeur devra déclencher une 
+            exception de type <code>NullPointerException</code>.
+        </li>
+    </ul>
+        
+    <p>Notez que les constructeurs de ces deux classes sont protégés (<code>protected</code>). Pour l'instant 
+        cela n'a pas d'impact sur vos tests unitaires puisque vos classes de test sont dans le même package. <br>
+        Nous reviendrons sur cette nuance lorsque nous aborderons les tests fonctionnels dans les derniers TP. 
+    </p>    
+        
+    <h2>Travail à réaliser</h2>
+        
+        <p>Dans ce TP vous devrez écrire des tests pour une implantation de la classe <code>BaseTicket</code> que 
+            vous n'aurez pas écrite. 
+        Il vous faudra donc vous appuyer sur la spécification uniquement pour écrire vos tests. </p>
+        
+        <p>Une implantation de la classe Ticket va vous être assignée. Celle-ci contient potentiellement une 
+            faute ou plusieurs fautes, mais pas obligatoirement ; elle peut tout aussi bien être 100% correcte. </p>
+        
+        <h3>Ecriture de tests pour une implantation de <code>ITicket</code></h3>
+        
+        <ol>
+            <li>Ecrivez les tests de la classe <code>BaseTicketXX</code>. Ceux-ci devront être placés dans une classe 
+                nommée <code>TestBaseTicket</code>.
+            </li>
+            <li>Passez vos tests sur l'implantation de <code>ITicket</code> qui vous a été assignée. Renommez, dans votre 
+                fichier de tests les méthodes de test qui échouent sur l'implem que vous avez testée en leur ajoutant le 
+                suffixe <code>_KO</code>. <br> 
+                Pour chacune, expliquez dans un commentaire à côté de la fonction pourquoi celle-ci échoue (en 2-3 lignes maxi, 
+                en vous appuyant sur la description qui est dans la spécification -- ex. <i>"je m'attendais à récupérer la valeur null
+                parce que l'état du ticket est supposé être invalide."</i>). Attention, on ne vous demande pas d'identifier où 
+                peut se trouver l'erreur dans la classe <code>BaseTicket</code>, ou de vous lancer dans une explication de ce qui 
+                a dû être fait 
+                dans le code pour en arriver à ce résultat ; ceci s'apparenterait à de la localisation de faute qui est une 
+                autre paire de manches. </li>
+        </ol>
+
+        
+        <p class="important">Attention, ce n'est pas parce qu'un test échoue que l'erreur est dans le code de l'application.
+            <br>L'erreur peut aussi être dans votre test qui traduit une mauvaise interprétation/compréhension de la spécification. </p>
+        
+        <p>Notez qu'une même faute peut faire échouer plusieurs tests, donc ne cherchez pas forcément à n'avoir qu'un seul 
+            test qui échoue, cela amputerait grandement vos chances de détecter d'autres erreurs, et, à l'inverse, cela vous 
+            obligerait, dans vos autres tests, à accepter des comportements pourtant erronés. </p>
+        
+        
+        <p>Vous serez évalués sur les points suivants :</p>
+
+        <ul>
+            <li>L'exactitude de votre diagnostic sur l'implémentation qui vous était assignée. Celle-ci sera évaluée en 
+                passant vos tests sur une implantation de référence de la classe <code>BaseTicket</code>. Tous les tests doivent 
+                passer sans lever d'erreur, que ce soient des faux-positifs (un test normalement OK qui échoue) ou de faux 
+                négatifs (une méthode suffixée par <code>_KO</code> qui passe). </li>
+            <li>La capacité de détection d'erreur de vos tests. Ceux-ci seront exécutés sur toutes les implantations erronées 
+                de la classe <code>BaseTicket</code>. Il est attendu que les erreurs soient détectées. </li>
+        </ul>
+
+        <p>Pour finir, la note obtenue 
+            sur les points précédents sera coefficientée par la mesure de couverture du code sur l'implem de référence. Pour 
+            vous rassurer, nous vous jurons sur l'honneur que la classe ne contiendra pas de code mort (là, ce serait bien vache). 
+        </p>
+
+        <h3>Récupération d'une implantation de l'interface <code>ITicket</code></h3>
+       
+
+        <p>Voici une <a href="https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/2/java/BaseTickets.jar">archive jar</a> qui contient différentes implémentations de la classe 
+            <code>BaseTicket</code>, nommées <code>BaseTicket01</code> à <code>BaseTicket18</code>. Pour installer 
+            cette archive dans votre environnement de développement, ajoutez les lignes suivantes au fichier <code>pom.xml</code> 
+            sous le noeud <code>dependencies</code>. On suppose pour cet exemple que l'archive 
+            est placée dans le répertoire <code>target</code>. </p>
+
+        <p class="terminal">&lt;dependency&gt;<br> &nbsp;&nbsp;&nbsp;&nbsp;&lt;groupId&gt;fr.ufc.l3info.oprog&lt;/groupId&gt;
+            <br> &nbsp;&nbsp;&nbsp;&nbsp;&lt;artifactId&gt;Ticket&lt;/artifactId&gt;
+            <br> &nbsp;&nbsp;&nbsp;&nbsp;&lt;version&gt;1.0&lt;/version&gt;
+            <br> &nbsp;&nbsp;&nbsp;&nbsp;&lt;scope&gt;system&lt;/scope&gt;
+            <br> &nbsp;&nbsp;&nbsp;&nbsp;&lt;systemPath&gt;${basedir}/target/BaseTickets.jar&lt;/systemPath&gt;
+            <br> &lt;/dependency&gt; </p>
+
+        <p>A noter que cette méthode n'est pas la plus propre pour ajouter une bibliothèque jar dans Maven, mais c'est la plus 
+            simple. Pour ceux qui voudraient en savoir plus sur les alternatives à cette solution vous pouvez aller lire
+            <a href="http://roufid.com/3-ways-to-add-local-jar-to-maven-project/#manually" target="_blank"> 
+            cet article</a>.</p>
+
+        <p>Vous pouvez, dans vos tests, utiliser la classe <code>BaseTicketXX</code> pour instancier votre objet à tester.
+        Pour connaître votre numéro <code>XX</code> : comptez votre place dans la salle de TP en commençant par le premier 
+        rang et en commençant chaque rang par le côté de la fenêtre. </p>
+
+        
+        <h3>Ecriture et test du décorateur</h3>
+    
+        <p>Ecrivez, par un patron de conception <em>décorateur</em> la classe <code>AdjustedTicket</code>. </p>
+
+        <p>N'oubliez pas les tests de cette classe que vous placerez dans une classe de test nommée <code>TestAdjustedTicket</code>. </p>
+    
+        <p>Pour vérifier qu'un test déclenche bien une exception attendue, vous pouvez utiliser l'annotation <code>@Test(expected=NomDeLaClasseDException.class)</code>, qui vous évitera de tester la présence de l'exception 
+            de façon manuelle (par exemple, avec un <code>try...catch</code>). </p>
+        
+        <h3>Travail à rendre</h3>
+
+        <p>Déposez dans le dépôt Moodle prévu à cet effet le code de la classe <code>TestBaseTicket</code>, ainsi que 
+            les classes <code>AdjustedTicket</code> et <code>TestAdjustedTicket</code>. </p>
+
+        
+    </main>
+    
+    
+    
+    
+
+
+
+<script id="define-custom-element-wtd-root">
+      (() => {
+        window.customElements.whenDefined('wtd-root').then(() => {
+          window.dispatchEvent(
+            new CustomEvent('customElements.defined', {
+                detail: {
+                  name: 'wtd-root',
+                },
+            }),
+          );
+        });
+
+        if (window.customElements.get('wtd-root')) return;
+
+        window.customElements.define('wtd-root', class extends HTMLElement {
+          constructor() {
+            super();
+            this.attachShadow({ mode: 'open' });
+          }
+        });
+      })();
+    </script><wtd-root id="cashback"><template shadowrootmode="open"><div id="root"></div><link rel="stylesheet" href="chrome-extension://emnoomldgleagdjapdeckpmebokijail/tailwind/tailwind.css"></template></wtd-root><script id="define-custom-element-wtd-div">
+      (() => {
+        window.customElements.whenDefined('wtd-div').then(() => {
+          window.dispatchEvent(
+            new CustomEvent('customElements.defined', {
+                detail: {
+                  name: 'wtd-div',
+                },
+            }),
+          );
+        });
+
+        if (window.customElements.get('wtd-div')) return;
+
+        window.customElements.define('wtd-div', class extends HTMLElement {
+          constructor() {
+            super();
+            
+          }
+        });
+      })();
+    </script><wtd-div id="wanteeedContainer" style="position: fixed; display: block; top: 0px; right: 0px; z-index: 2147483647;"><wtd-root id="comparator"><template shadowrootmode="open"><div id="root"><div class="pointer-events-none z-[2147483647] flex select-none flex-col items-end overflow-hidden font-sans antialiased"></div></div><link rel="stylesheet" href="chrome-extension://emnoomldgleagdjapdeckpmebokijail/tailwind/tailwind.css"></template></wtd-root><iframe id="wanteeedPanel" data-version="1.118.0" allowtransparency="true" style="background-color: rgb(255, 255, 255); border: none; border-radius: 3px; box-shadow: rgb(181, 181, 181) 1px 1px 3px 2px; clip: auto; display: none; margin-left: auto; margin-right: 12px; margin-top: 12px; position: relative; z-index: 2147483647; height: 1px; width: 1px;" src="./Outils pour la Programmation - TP3_files/saved_resource.html"></iframe></wtd-div><iframe id="wanteeedTestMaker" data-version="1.118.0" allowtransparency="true" style="border: none; clip: auto; display: none; left: 0px; overflow: hidden; position: fixed; top: 10px; transition: all 0.2s ease-out 0s; z-index: 45739864; height: 1px; width: 1px;" src="./Outils pour la Programmation - TP3_files/saved_resource(1).html"></iframe></body></html>
