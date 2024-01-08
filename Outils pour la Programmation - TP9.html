@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<!-- saved from url=(0084)https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/2/TP9.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>Outils pour la Programmation - TP9</title>
+    <link rel="stylesheet" type="text/css" href="./Outils pour la Programmation - TP9_files/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com/"><link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin=""><link rel="stylesheet" href="./Outils pour la Programmation - TP9_files/css2" class="wtd-font"><link rel="stylesheet" href="./Outils pour la Programmation - TP9_files/css2(1)" class="wtd-font"></head>
+
+<body>
+
+<div id="bcPage">
+
+    <header>    
+    
+    <h1>Outils pour la programmation - Travaux pratiques</h1>
+
+    <h1 class="pluspetit">TP9 - Test fonctionnel</h1>
+
+    </header>
+        
+    <p style="text-decoration:underline;">Objectifs du TP :</p>
+
+    <ul>
+        <li>Réaliser des tests fonctionnels de l'application. </li>
+    </ul>
+
+    <img src="./Outils pour la Programmation - TP9_files/198-feature-complete.png" style="width: 60%; margin: 10px auto; display: block;">
+    
+
+       <h2>Description de l'application à tester</h2>
+
+        <p>La description complète est <a href="https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/2/sujet.html" target="_blank">disponible ici</a>. Le modèle de données considéré est rappellé ci-dessous :</p>
+
+        <img src="./Outils pour la Programmation - TP9_files/DiagrammeClasse.png" alt="Diagramme de classes" class="figure" style="max-width: 700px;">
+
+        
+    <p>Dans ce TP, nous allons n'allons pas écrire de nouvelle classe, le système étant désormais complet. </p>
+
+    <p>Nous allons nous focaliser sur l'écriture de tests fonctionnels qui ont pour objectif de réaliser des 
+    scénarios d'utilisation classique de l'application. 
+    </p>
+
+    
+<h2>Travail à réaliser</h2>    
+    
+<p>Ecrivez vos tests fonctionnels dans une classe nommée <code>TestsFonctionnels.java</code>. 
+    Cette classe sera hors du package manipulé jusqu'à présent. 
+</p>
+
+<p>Le principe de fonctionnement de l'application sera le suivant : </p>    
+<ul>
+    <li>Le réseau est instancié via un fichier décrivant sa structure.</li>
+    <li>Le client utilise la <code>TicketMachine</code> pour instancier son ticket. </li>
+    <li>Le ticket est passé dans une barrière d'entrée, situé dans une certaine station du réseau. </li>
+    <li>Le client ressort à une autre station, en empruntant la barrière de sortie. </li>
+    <li>Si le client n'avait pas provisionné assez d'argent sur son ticket, il peut l'ajuster en vue de sortir. </li>
+</ul>
+    
+    
+<p>Vous pouvez travailler de façon indépendante au sein d'un groupe (chacun écrit sa propre classe, et suffixe le 
+    nom de celle-ci avec ses initiales) ou faire un peu de <em>pair-programming</em> (ce qui s'apparent plus à du 
+    <em>pair-testing</em> pour le coup). </p>
+    
+<p>Les tests fonctionnels devront être réalisés pour la prochaine séance de TP. </p>
+    
+</div>
+
+
+
+
+<script id="define-custom-element-wtd-root">
+      (() => {
+        window.customElements.whenDefined('wtd-root').then(() => {
+          window.dispatchEvent(
+            new CustomEvent('customElements.defined', {
+                detail: {
+                  name: 'wtd-root',
+                },
+            }),
+          );
+        });
+
+        if (window.customElements.get('wtd-root')) return;
+
+        window.customElements.define('wtd-root', class extends HTMLElement {
+          constructor() {
+            super();
+            this.attachShadow({ mode: 'open' });
+          }
+        });
+      })();
+    </script><wtd-root id="cashback"><template shadowrootmode="open"><div id="root"></div><link rel="stylesheet" href="chrome-extension://emnoomldgleagdjapdeckpmebokijail/tailwind/tailwind.css"></template></wtd-root><script id="define-custom-element-wtd-div">
+      (() => {
+        window.customElements.whenDefined('wtd-div').then(() => {
+          window.dispatchEvent(
+            new CustomEvent('customElements.defined', {
+                detail: {
+                  name: 'wtd-div',
+                },
+            }),
+          );
+        });
+
+        if (window.customElements.get('wtd-div')) return;
+
+        window.customElements.define('wtd-div', class extends HTMLElement {
+          constructor() {
+            super();
+            
+          }
+        });
+      })();
+    </script><wtd-div id="wanteeedContainer" style="position: fixed; display: block; top: 0px; right: 0px; z-index: 2147483647;"><wtd-root id="comparator"><template shadowrootmode="open"><div id="root"><div class="pointer-events-none z-[2147483647] flex select-none flex-col items-end overflow-hidden font-sans antialiased"></div></div><link rel="stylesheet" href="chrome-extension://emnoomldgleagdjapdeckpmebokijail/tailwind/tailwind.css"></template></wtd-root><iframe id="wanteeedPanel" data-version="1.118.0" allowtransparency="true" style="background-color: rgb(255, 255, 255); border: none; border-radius: 3px; box-shadow: rgb(181, 181, 181) 1px 1px 3px 2px; clip: auto; display: none; margin-left: auto; margin-right: 12px; margin-top: 12px; position: relative; z-index: 2147483647; height: 1px; width: 1px;" src="./Outils pour la Programmation - TP9_files/saved_resource.html"></iframe></wtd-div><iframe id="wanteeedTestMaker" data-version="1.118.0" allowtransparency="true" style="border: none; clip: auto; display: none; left: 0px; overflow: hidden; position: fixed; top: 10px; transition: all 0.2s ease-out 0s; z-index: 45739864; height: 1px; width: 1px;" src="./Outils pour la Programmation - TP9_files/saved_resource(1).html"></iframe></body></html>

@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<!-- saved from url=(0084)https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/2/TP1.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>Outils pour la Programmation - TP1</title>
+    <link rel="stylesheet" type="text/css" href="./Outils pour la Programmation - TP1_files/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com/"><link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin=""><link rel="stylesheet" href="./Outils pour la Programmation - TP1_files/css2" class="wtd-font"><link rel="stylesheet" href="./Outils pour la Programmation - TP1_files/css2(1)" class="wtd-font"></head>
+
+<body>
+
+    <div id="bcPage">
+
+    <header>
+        
+        <h1>Outils pour la programmation - Travaux pratiques</h1>
+        
+        <h1 class="pluspetit">TP1 - Test unitaire avec JUnit et JaCoCo dans IntelliJ avec Maven</h1>
+        
+    </header>
+
+        <p style="text-decoration:underline;">Objectifs du TP :</p>
+
+        <ul>            
+            <li>utiliser un environnement de développement intégré (ici <a href="https://www.jetbrains.com/idea/" target="_blank">IntelliJ 
+                IDEA</a> pour Java), </li>
+            <li>s'appuyer sur un logiciel de gestion et d'automatisation de production de projets logiciels pour réaliser les tâches inhérentes au développement du logiciel : compilation, test, documentation, etc. (ici <a href="https://maven.apache.org/" target="_blank">Maven</a>), </li>
+            <li>utiliser un environnement d'exécution de tests de type xUnit (ici, <a href="http://junit.org/junit4/" target="_blank">JUnit</a> pour Java)</li>
+            <li>écrire et exécuter des tests xUnit sur une application existante</li>
+            <li>mesurer la couverture du code avec un outil approprié (ici <a href="http://www.eclemma.org/jacoco/" target="_blank">JaCoCo</a>) pour évaluer la pertinence des tests écrits</li>
+        </ul>
+        
+
+        <h2>Description de l'application à tester</h2>
+
+        <p>L'application à développer et à tester est un système de gestion des voyages en métro. La description complète est <a href="https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/2/sujet.html" target="_blank">disponible ici</a>. Le modèle de données considéré est rappellé ci-dessous :</p>
+        
+        <img src="./Outils pour la Programmation - TP1_files/DiagrammeClasse.png" alt="Diagramme de classes" class="figure" style="max-width: 800px;">
+
+        <p>Dans ce premier TP, nous allons travailler sur la classe <code>Station</code> désignant les stations du métro. Cette 
+        classe sera écrite dans le fichier <code>Station.java</code>. </p>
+        
+<h3 id="spec">Spécification de la classe <code>Station</code></h3>        
+            
+<p>Une station de métro contient les informations basiques relatives aux lignes qui la traversent. 
+    Pour chaque ligne, on enregistre le numéro de la station sur la ligne (la numérotation commence à 1), 
+    ainsi que la position kilométrique de la station, qui représente la distance depuis le début de la ligne 
+    pour arriver à cette station.</p>
+
+        <p>La classe est composée des constructeurs et méthodes suivantes : </p>
+
+<ul>
+    
+<li><code>public Station(String name)</code> construit une station par laquelle aucune ligne ne passe pour l'instant. </li> 
+
+    <li><code>public Station(String name, String line, int number, double distance)</code> construit une station en l'initialisant avec une ligne à laquelle elle appartient. Si les paramètres concernant la ligne ajoutée sont incorrects (voir conditions ci-dessous), 
+        l'effet de ce constructeur est le même que celui du constructeur ci-dessus. </li>
+
+    <li><code>public void addLine(String line, int number, double distance)</code> permet de rattacher la station à une ligne. Si la ligne  existe déjà, les informations relatives à celle-ci sont mises à jour avec les nouvelles valeurs passées en paramètre.
+    Pour être ajoutée, la ligne devra avoir un nom valide (non null, non vide ou assimilé), un numéro strictement positif, 
+        et une distance positive ou nulle. 
+    </li>
+    
+    <li><code>public void removeLine(String line)</code> permet de retirer la station de la ligne en paramètre.</li> 
+
+    <li><code>public String getName()</code> renvoie le nom de la station.</li> 
+
+    <li><code>public int getNumberForLine(String line)</code> permet de récupérer le numéro de la station pour la ligne passée en paramètre. Si la station n'appartient pas à la ligne demandée, la valeur 0 sera renvoyée.</li>
+    
+    <li><code>public double getDistanceForLine(String line)</code> permet de récupérer la position kilométrique de la station sur la ligne passée en paramètre. Si la station n'appartient pas à la ligne, une valeur négative sera renvoyée. </li>
+    
+    <li><code>public Set&lt;String&gt; getLines()</code> renvoie l'ensemble des lignes qui passent par la station. 
+
+    </li><li><code>public boolean equals(Object s)</code> permet de tester si deux stations sont identiques. On considérera que les noms des stations sont supposées être uniques. Deux stations seront donc considérées comme identiques si elles ont le même nom. </li>
+
+    <li><code>public int hashCode()</code> est utilisée en interne par Java pour obtenir un hash de l'objet. Cette méthode est utilisée pour les structures de collection de type HashSet ou HashMap. En vous basant sur l'information donnée à la question précédente, vous devriez pouvoir trouve un moyen de calculer un hash pertinent. 
+        (Pour plus de détails, voir les explications <a href="https://www.programmergate.com/working-hashcode-equals-java/" target="_blank">en VO </a> ou <a href="https://www.infoq.com/fr/articles/retour-sur-les-bases-equals-et-hashcode" target="_blank">en VF</a>)</li>
+</ul>
+    
+<p>On fera l'hypothèse (la précondition) sur les constructeurs qu'ils doivent toujours être invoqués avec un nom de station non
+    <code>null</code>. Les tests ne devront donc pas réaliser cette action. Dans les prochains TP, on fera en sorte de s'assurer 
+    que si le code doit instancier des stations, ce seront nécessairement des stations correctement nommées. </p>
+    
+
+        <h3>Travail à réaliser</h3>
+        
+        <p>Durant ce TP, vous allez devoir coder et tester la classe <code>Station</code>. Pour ce faire, nous allons commencer par 
+        mettre en place un environnement de travail que nous utiliserons durant toutes les séances de TP. </p>
+
+<p>Le choix du modèle de données est laissé à votre discrétion. Il est toutefois demandé de ne pas modifier les méthodes ci-dessus, 
+    notamment leur signature, ni rajouter d'autres méthodes "parce que moi j'aurais plutôt fait ça comme ça" (peut-être, mais ce n'est 
+    pas le but de l'exercice).</p>
+
+        
+        <p>Les objectifs de ce TP sont les suivants :</p> 
+        <ul>
+            <li>implanter une classe en Java sur la base d'une spécification </li>
+            <li>valider le bon comportement des objets de cette classe par un ensemble de tests unitaires en JUnit</li>
+            <li>utiliser la mesure de couverture de code pour avoir un premier niveau d'indication sur la qualité du code écrit. </li>
+        </ul>
+        
+    <p>Pour démarrer, nous vous fournissons un <a target="_blank" href="https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/2/java/Station.java">squelette de la classe Station</a> (<code>Station.java</code>),
+        duquel vous partirez pour écrire le code de votre classe, ainsi qu'un début de <a target="_blank" href="https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/2/java/TestStation.java">fichier de test</a>
+        (<code>TestStation.java</code>) au format JUnit qui vous donne les principales fonctions utilisées dans cet environnement. </p>
+
+        
+<p>Avant de vous lancer dans le codage de l'application, et les tests de celle-ci, nous faisons un tour d'horizon des 
+   outils que nous allons utiliser durant les TP. </p>
+        
+        
+<h2>Prise en main des outils</h2>
+        
+<p>Prenez soin de bien lire ce qui suit et de bien suivre les instructions de mise en place de votre environnement de 
+    travail. Rassurez-vous, même si cette étape est un peu longue, elle ne sera à faire qu'une seule fois pour ces TP. </p>        
+        
+<h3>Maven</h3>
+    
+<p>Maven est ce que l'on appelle un <u>logiciel de gestion et d'automatisation de production de projets logiciels</u>. 
+Dit autrement : un logiciel qui vous aide à construire un logiciel. Dans cette catégorie, vous connaissez sûrement déjà 
+    <code>make</code> que nous aviez utilisé l'année passée. </p>
+    
+<p>Maven possède quelques fonctionnalités qui vont nous intéresser d'un point de vue "développement avec Java" :</p>
+<ul>
+    <li>organisation des sources, cibles, tests, etc. dans une arborescence "propre", </li>
+    <li>simplification de la gestion des dépendances : d'une part, les <code>archives jar</code> utiles pour un projet 
+    sont centralisées, et leur inclusion pour les phases de compilation ou d'exécution est gérée par Maven, par le biais
+    d'une simple déclaration, qui précisera la portée de cette bibliothèque : la compilation, l'exécution uniquement, 
+    les tests uniquement (comme JUnit par exemple), etc. </li>
+    <li>raccourcis vers des étapes incontournables lors de la production de logiciel : compilation, test, déploiement, etc. </li>
+</ul>
+    
+<p>Pour cette dernière partie, Maven s'appuie sur la notion de buts (appelés <code>goals</code>). Les principaux sont 
+    les suivants : </p>
+<ul>
+    <li><code>compile</code> : pour compiler les sources de votre application</li>
+    <li><code>test</code> : pour compiler et exécuter les tests de votre application</li>
+    <li><code>package</code> : prépare l'application sous une forme diffusable </li>
+    <li><code>install</code> : installe l'application dans le dépôt local pour qu'elle puisse être utilisée comme 
+        dépendance d'autres projets</li>
+    <li><code>deploy</code> : déploie l'application dans un environnement dédié et copier celle-ci dans le référentiel distant. </li>
+<li><code>clean</code> : supprime tous les fichiers créés par le build précédent </li>
+    <li><code>site</code> : génère le site du projet</li>
+</ul>
+
+<p>A noter que pour Maven, l'application développée est désignée par le terme <code>artefact</code>. </p>    
+    
+<p>Pour les TPs vous n'utiliserez pas tous ces goals, mais principalement <code>compile</code> et <code>test</code>. </p>
+    
+<p>A la création d'un projet, avec une commande dédiée, Maven va automatiquement (et obligatoirement) organiser 
+    celui-ci suivant une arborescence spécifique :</p>
+<pre>/
+|__src/ 	              
+|   |__ main/             les fichiers sources principaux
+|   |   |__ java/         le code source (sera compilé dans /target/classes)
+|   |   |   |__ fr/
+|   |   |       |__ ...
+|   |   |__ resources/    les ressources utiles pour l'application
+|   |   |   |__ ...
+|   |__ test/ 	          les fichiers pour les tests
+|       |__ ...           le code source des tests  
+|__target/ 	              
+|   |__ classes/          les classes compilées
+|   |   |__ fr/
+|   |   |   |__ ...
+|   |   |__ ...           ressources copiées à partir de src/main/resources
+|   |__ test-classes/ 	  les classes compilées des tests unitaires
+|   |__ ...
+|__pom.xml                le fichier POM de description du projet
+</pre>
+
+<p>Le fichier <code>pom.xml</code> situé à la racine du projet centralise la description du projet, notamment ses 
+    identifiants, ses dépendances, et les éventuelles actions supplémentaires que vous pouvez vouloir effectuer (entre 
+    bien d'autres choses). </p>
+        
+<p>Les dépendances (bibliothèques externes à votre projet) sont stockées dans un répetoire à part de votre dossier de 
+    travail (généralement <code>~/.m2/repository</code>) et versionnées pour pouvoir être référencées dans vos projets Java. 
+    Ceci évite de conserver de multiples copies d'une même ressource dans chacun de vos projets. Par ailleurs, Maven 
+    travaille avec des dépôts de bibliothèque distants pour importer tout seul les dépendances que vous déclarez. Ce 
+    n'est donc pas à vous d'aller manuellement télécharger des <code>.jar</code> pour les intégrer à votre projet.
+    Tout est fait pour vous. 
+</p>
+        
+
+<p class="important">Attention, dans les salles de TP, il est nécessaire de paramétrer le proxy dans la configuration de Maven 
+    pour permettre d'importer les dépendances. </p>    
+    
+<p>Le paramétrage du proxy s'effectue dans le fichier <code>settings.xml</code> (et il ne sera à faire qu'une seule fois). 
+    Celui-ci doit être placé dans <code>~/.m2/settings.xml</code>. S'il n'existe pas encore, créez-le et copiez-collez les 
+    lignes suivantes : </p>
+    
+<p class="terminal" style="width: 90%;">
+&lt;settings xmlns="http://maven.apache.org/SETTINGS/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"<br>
+&nbsp;&nbsp;xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;proxies&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;proxy&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;id&gt;myproxy&lt;/id&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;active&gt;true&lt;/active&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;protocol&gt;http&lt;/protocol&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;host&gt;proxy-www.univ-fcomte.fr&lt;/host&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;port&gt;3128&lt;/port&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/proxy&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;/proxies&gt;<br>
+&lt;/settings&gt;
+</p>
+    
+<p>Lorsque vous allez demander à Maven de compiler vos sources, celui-ci va s'appuyer sur les dépendances 
+    déclarées dans ce fichier pour générer automatiquement la commande nécessaire à la compilation de l'application et 
+    la faire exécuter par le système. </p>
+    
+<p>Maven fonctionne usuellement en ligne de commande, la compilation consiste donc à exécuter le but <code>compile</code> 
+    comme ceci : </p>
+
+<p class="terminal">mvn compile</p>
+    
+<p>depuis la racine du projet, ce qui aura pour effet de compiler le projet, en lui liant les bonnes dépendances, pour créer les <code>.class</code> dans le répertoire <code>target</code> du projet. </p>
+    
+<p>De manière générale, chacun des buts de Maven s'exécute en ligne de commande avec <span class="terminal">mvn <i>but à exécuter</i></span></p>        
+        
+<p>Si vous souhaitez un tour d'horizon complet de Maven, ce <a href="https://www.jmdoudoux.fr/java/dej/chap-maven.htm" target="_blank">site en français</a> très complet vous permettra de découvrir les différentes fonctionnalités offertes par cet utilitaire. 
+Sinon, le <a href="https://maven.apache.org/guides/getting-started/index.html" target="_blank">guide de démarrage sur le site officiel de Maven</a> vous donnera un rapide aperçu des possibilité de cet outil. </p>    
+    
+<p>Maven peut s'utiliser sur la ligne de commande, mais il est également pris en charge dans différents environnements de 
+développement intégrés (IDE) tels que Eclipse, NetBeans, ou IntelliJ IDEA. C'est ce dernier IDE que nous allons utiliser pour ce
+TP et c'est lui qui va gérer notre projet Maven. </p>
+    
+    
+    
+<h3>IntelliJ IDEA</h3>
+        
+<p><a href="https://www.jetbrains.com/idea/" target="_blank">IntelliJ IDEA</a> est un environnement de développement intégré 
+        dédié à Java et édité par JetBrains. Il existe en version communautaire, gratuite. </p>
+        
+<p>Comme tous les environnements de développement intégrés (IDE), IntelliJ permet des facilités d'édition du code (complétion 
+        automatique, rappels de doc, détection d'erreurs statiques, refactoring, etc.). Il permet également la gestion des 
+        dépendances de l'application, et intègre directement différents outils, notamment pour l'exécution de cas de tests 
+        (en JUnit) et la mesure de couverture de code, qui vont nous intéresser ici. </p>
+        
+<p>Quelques fonctionnalités utiles des IDE (liste non exhaustive) : </p>
+        
+<ul>
+    <li>coloration syntaxique : les mots-clés du langage, valeurs, etc. sont repérés dans le code</li>
+    <li>vérification statique à la volée : les erreurs de syntaxe sont signalées au fur et à mesure de l'écriture du code</li>
+    <li>complétion : l'éditeur vous propose des méthodes, variables, etc. connues (issues de votre code ou de bibliothèques) </li>
+    <li>quick-fix : possibilité de réparer certaines erreurs par des actions/paramétrages réalisés par l'IDE : import de paquetages, 
+    ajout au classpath, modification de la signature, génération de clauses try/catch, etc.</li>
+    <li>refactoring : renommage de méthodes/attributs/paramètres et propagation des modifications partout où ces éléments sont utilisés
+    dans le projet</li>
+    <li>exécution pas-à-pas du code : possibilité de mettre des points d'arrêt dans le code pour bloquer l'exécution et inspecter l'état 
+        de vos objets et exécuter le reste du code étape-par-étape
+    </li>
+    <li>et bien d'autres encore...</li>
+</ul>
+        
+<p>Le couplage Maven/IntelliJ est intéressant puisqu'il permet de vous éviter de paramétrer votre projet Java en allant 
+        trifouiller manuellement la configuration des options de compilation. En déclarant le projet comme étant un projet 
+        Maven, IntelliJ s'appuiera sur les informations contenues dans le fichier POM pour se configurer automatiquement. 
+        
+</p>
+        
+        
+<h4>Etape 1. Lancement de IntelliJ IDEA et création du projet Maven</h4>
+    
+<p>Pour commencer, nous allons effectuer les étapes nécessaire à la création d'un projet Maven pour notre application Transport 
+    et ses tests, et nous intégrerons les fichiers déjà fournis dans cette interface. </p>    
+    
+    <p>Commencez par lancer IntelliJ IDEA avec la commande</p>
+    <p class="terminal">/opt/idea-...(utilisez la complétion).../bin/idea.sh</p> 
+        
+    <p>Demandez la création d'un nouveau projet Maven. </p>
+    
+<img src="./Outils pour la Programmation - TP1_files/creerProjet.png" alt="Creation d&#39;un projet Maven" style="display: block; width: 60%; margin: 10px auto;"> 
+
+    <p>Choisissez l'archetype (une structure pré-définie proposée par Maven) <code>org.apache.maven.archetypes:maven-archetype-quickstart</code>. Dans la section "Advanced Settings", donnez comme <code>GroupId</code> la valeur du package contenant l'application <code>fr.ufc.l3info.oprog</code>, et comme <code>ArtefactId</code>
+        (le nom de votre application) la valeur que vous voulez (par exemple <code>Transport</code>).
+    </p>
+        
+    <p class="important">Même si vous avez une version ultra-récente de Java, pour éviter des soucis de compatibilité des 
+        outils que nous utiliserons plus tard, préférez une version plus ancienne, mais plus robuste, comme un Java 8.
+    </p>
+
+<p>Terminez ensuite la création du projet en sélectionnant le répertoire où créer le projet et en laissant les versions de Maven 
+        proposées par défaut par l'assistant. </p>    
+
+<p><img src="./Outils pour la Programmation - TP1_files/autoimport.png" style="float: right; margin-left: 10px;">
+    Le projet doit normalement se créer (il est possible qu'à la première exécution cette étape prenne un peu de temps - <i>Don't Panic!</i>). 
+    N'hésitez pas à activer la fonction <code>Auto-Import</code> qui vous sera proposée dans une petite fenêtre 
+    en bas à droite de l'écran. Cela permettra à Maven d'importer automatiquement dans votre projet toutes les modifications apportées
+    aux fichiers de configurations et de télécharger les dépendances nécessaires sans vous solliciter à chaque fois. </p>    
+    
+<p>Après quelques importations, vous constaterez que Maven a automatiquement 
+    créé les répertoires nécessaires, 
+    où une classe prédéfinie apparaît (classe <code>App</code> dans le dossier <code>main</code>) ainsi que les 
+    tests associés (classe <code>AppTest</code> dans le dossier <code>test</code>).</p>    
+    
+<img src="./Outils pour la Programmation - TP1_files/arborescence.png" alt="arborescence" style="display: block; width: 25%; margin: 10px auto;">
+    
+    
+<p>S'il n'existe pas sur la droite de la fenêtre un bouton <code>Maven</code> qui, une fois appuyé, ouvre une fenêtre spécifique à 
+    cet environnement, utilisez le menu <code>View &gt; Tool windows &gt; Maven Projects</code>. Le projet s'ouvre également sur le fichier <code>pom.xml</code> décrivant les dépendances du projet. 
+    Bien que vous n'ayez pas encore eu de cours sur XML, vous pouvez juste repérer qu'il s'agit d'une sorte de généralisation 
+    de tous les langages à balises (dont vous connaissez HTML), où les balises sont définies en fonction des entités qui doivent
+    être décrites dans cette structure arborescente. </p>
+
+<img src="./Outils pour la Programmation - TP1_files/POM.png" alt="Fichier POM et fenêtre Maven" style="display: block; width: 80%; margin: 10px auto;">
+    
+<p>Les goals à droite (dans <code>Transport/Lifecycle</code>) vous serviront à effectuer les actions que vous souhaitez sur le projet. 
+    La console intégrée à IntelliJ vous montrera les résultats. </p>    
+
+<p>Vous remarquerez dans la partie "Dependencies" les dépendances nécessaire pour la compilation du projet. Par défaut, il est possible
+    que la version de JUnit mentionnée ne soit pas celle que nous allons utiliser. Dans ce cas, modifiez à la main le fichier POM pour spécifier d'utiliser <b>JUnit 4.X</b>
+    (par exemple JUnit 4.12). En sauvegardant le fichier POM, Maven va importer cette nouvelle configuration et mettre à jour votre environnement d'exécution. </p>
+    
+    
+<h4>Etape 2. Intégration des sources existantes</h4>    
+    
+<p>Nous allons commencer par intégrer les sources existantes. </p>
+    
+<p>
+    Supprimez les fichiers initialement créés par Maven (<code>App.java</code> et <code>AppTest.java</code>).
+    Copiez-collez le fichier <code>Station.java</code> au bon endroit dans cette nouvelle arborescence. 
+    Faites de même pour le fichier de tests <code>TestStation.java</code>. 
+</p>    
+    
+<p>Rafraîchissez le projet, et compilez-le, avec le goal <code>compile</code> proposé par Maven. Les packages étant déjà 
+    correctement déclarés dans vos fichiers d'origine, tout devrait bien se passer. </p>
+    
+<p>Le projet IDEA étant créé avec Maven, la commande <code>build</code> d'IntelliJ (disponible dans le menu 
+    <code>Build &gt; Build project</code>) s'appuiera sur le but <code>compile</code> de Maven. </p>    
+    
+        <p>Les fichiers initiaux sont relativement vides, la classe <code>Station</code> contient les méthodes mentionnées 
+        dans le sujet avec une implantation minimale (mais suffisante pour être compilée), et la classe <code>TestStation</code>
+        contient un test très basique avec deux exemples d'assertions utilisables pour s'assurer du bon comportement de 
+        l'application. </p>        
+        
+<p>Pour connaître la liste complète des assertions JUnit ou pour découvrir plus en détail le format des tests JUnit, 
+    rendez-vous sur <a href="https://junit.org/junit4/" target="_blank">la documentation de JUnit</a>.</p>
+    
+        
+<h4>Etape 3. Exécuter les tests unitaires du fichier d'exemple</h4>        
+    
+<img src="./Outils pour la Programmation - TP1_files/depressed-developer-32.png" style="width: 200px; float: right; margin-left: 20px;">            
+        
+<p style="clear: none;">Maven et IntelliJ étant couplés, cette fonctionnalité peut être réalisé via l'un ou l'autre des deux outils. </p>        
+<p style="clear: none;">Pour compiler et exécuter les tests, il est nécessaire d'avoir dans le POM la dépendance suivante qui lie JUnit (ici version 4.12).
+    Si vous n'avez pas utilisé d'artetype spécifique pour créer votre projet, vous aurez potentiellement à rajouter cette 
+    dépendance manuellement : </p>
+    
+<p class="terminal" style="clear: none;">&lt;dependencies&gt;<br>    
+    &nbsp;&nbsp;&nbsp;&nbsp;&lt;dependency&gt;<br> 
+    &nbsp;&nbsp;&nbsp;&nbsp;&lt;groupId&gt;junit&lt;/groupId&gt;
+    <br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;artifactId&gt;junit&lt;/artifactId&gt;
+    <br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;version&gt;4.12&lt;/version&gt;
+    <br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;scope&gt;test&lt;/scope&gt;
+    <br> &nbsp;&nbsp;&nbsp;&nbsp;&lt;/dependency&gt;
+    <br> &lt;/dependencies&gt; </p>
+
+        
+<p style="clear: none;"><strong>Avec Maven.</strong> Rafraîchissez le projet, compilez et exécutez les tests avec le goal <code>test</code> de Maven. </p>
+    
+<p style="clear: none;">Bon à savoir : Maven demande une convention particulière de nommage pour trouver les tests. Par défaut, 
+    le plugin <code>Surefire</code> (en charge de l'exécution des tests) recherche les tests unitaires dont les 
+    classes respectent une convention de nommage particulière :</p>
+<ul>
+    <li><code>**/*Test.java</code></li>
+    <li><code>**/Test*.java</code></li>
+    <li><code>**/*TestCase.java</code></li>
+</ul>
+
+<p style="clear: none;">Pour renommer proprement une classe (ainsi que toutes les références qui y sont faites au sein d'un projet) un IDE propose 
+    généralement une fonction de renommage (dans la catégorie "Refactorisation"). Gardez ceci à l'esprit quand vous créez des 
+    fichiers de test dans un projet Maven. 
+</p>
+    
+<p>Si tout était bien configuré, vous devriez voir dans la console en bas de la fenêtre les informations suivantes (avec un test qui échoue) : </p>
+
+<img src="./Outils pour la Programmation - TP1_files/result-exec-maven.png" alt="Résultat d&#39;exécution des tests avec Maven" style="display: block; width: 70%; margin: 10px auto 30px auto;">
+ 
+ 
+<img src="./Outils pour la Programmation - TP1_files/exec-tests.png" style="float: right; width: 25%; margin-left: 20px;">    
+
+    <p style="clear:none;"><strong>Avec IntelliJ.</strong> Le goal <code>test</code> de Maven vous permet d'exécuter tous les tests d'un coup. Vous pouvez toutefois choisir d'exécuter chaque 
+    classe de test indépendamment, sans passer par Maven, mais en vous appuyant sur les possibilités offertes par votre IDE. Pour ce faire, sélectionnez la classe et exécutez-la. Plusieurs manières de faire : </p>
+
+    <ul>
+    <li>Menu <code>Run</code>, puis <code>Run...</code>, choisissez ensuite la classe de tests dans la liste. </li>
+    <li>Clic-droit sur l'onglet du fichier de test, puis <code>Run '<i>NomDeLaClasseDeTests</i>'</code></li>
+    <li>Clic sur le petit bouton vert dans la marge à gauche de la déclaration de la classe de test, puis <code>Run '<i>NomDeLaClasseDeTests</i>'</code> comme illustré ci-contre. <br>Vous pouvez aussi utiliser ce procédé pour exécuter 
+        chaque test indépendamment.</li>
+</ul>
+    
+<p style="clear:none;">De cette façon, les tests s'exécutent dans l'IDE et vous pouvez bénéficier d'une visualisation plus directe de l'exécution 
+    de ceux-ci, dans une fenêtre dédiée de l'IDE. Puisque l'exécution se fait dans l'IDE, vous avez la possibilité de cliquer sur l'erreur 
+        pour ouvrir directement le fichier et l'assertion qui a détecté la faute. </p>
+
+<img src="./Outils pour la Programmation - TP1_files/the-last-resort.png" style="float: left; width: 220px; margin-right: 10px;">    
+
+<img src="./Outils pour la Programmation - TP1_files/result-exec-intellij.png" alt="Résultat d&#39;exécution des tests avec IntelliJ" style="display: block; width: 70%; margin: 10px auto;">
+        
+        
+<h4>Etape 4. Effectuer la mesure de la couverture du code</h4>    
+     
+<p>Pour évaluer la pertinence des tests de la classe <code>Station</code> (et ainsi, indirectement, la confiance que l'on peut 
+    avoir dans le code 
+    écrit), une pratique courante est de mesurer la couverture du code. Les outils de mesure de couverture code ont 
+    justement pour objectif d'identifier, dans le code source, quelles lignes ont été activées lors de l'exécution 
+    des tests. </p>
+
+<img src="./Outils pour la Programmation - TP1_files/depressed-developer-17.png" class="figure">            
+
+<p>Pour cela, nous allons utiliser l'outil <a href="http://www.jacoco.org/jacoco/index.html" target="_blank">JaCoCo (Java 
+    Code Coverage)</a>. JaCoCo fonctionne en utilisant une intrumentation "à la volée" du code Java pour mesurer la 
+    couverture du code. Pour ce faire, il fournit son propre "Java Agent" (une JVM améliorée) qu'il faut utiliser au 
+    moment de l'exécution des tests pour réaliser une mesure de couverture de code. </p>
+
+<p>Mesurer la couverture d'une exécution de code Java avec JaCoCo fonctionne en deux temps : </p>
+<ol>
+    <li>D'abord, on exécute le code avec cette mesure de couverture, pour obtenir un rapport d'exécution 
+        (format <code>.exec</code> spécifique à JaCoCo). Pour cette étape, on utilise le 
+        <a href="http://www.jacoco.org/jacoco/trunk/doc/agent.html" target="_blank">Java Agent que l'on exécute en ligne de commande</a>.</li>
+
+    <li>Ensuite, utiliser <a href="http://www.jacoco.org/jacoco/trunk/doc/cli.html" target="_blank">le client en ligne de commande</a> pour produire un rapport au format HTML à partir du fichier .exec produit précédemment</li>
+</ol>
+
+<p>Ayant intégré notre code dans un IDE, ces étapes vont pouvoir être réalisées directement dans l'IDE, de façon complètement 
+    transparente pour le développeur. Deux options s'offrent à vous : </p>
+<ul>
+<li>utiliser les fonctionnalités natives d'IntelliJ qui vous indiquera directement dans l'éditeur de code les 
+    portions couvertes par les tests et celles manquées. </li>
+<li>paramétrer dans Maven (au travers du fichier POM) la génération du rapport d'exécution de tests
+    au format HTML. </li>
+</ul>
+        
+
+    
+<p><strong>Avec IntelliJ.</strong> Pour utiliser les fonctionnalités d'IntelliJ pour mesurer la couverture de code, il faut déjà 
+    choisir JaCoCo comme outil. 
+    Pour ce faire, ouvrez le menu <code>Run</code> puis <code>Edit configurations</code>. Dans l'onglet <code>Code coverage</code>
+    des classes de test unitaires, choisissez <code>JaCoCo</code>.</p>
+    
+<img src="./Outils pour la Programmation - TP1_files/codecoverage2021.png" alt="Couverture de code avec Jacoco" style="display: block; width: 80%; margin: 10px auto;">    
+    
+<p>Il ne vous reste ensuite plus qu'à exécuter vos tests comme précédemment, mais en utilisant <code>Run...with coverage</code>. 
+    La couverture de code apparaîtra alors dans la marge gauche de vos fichiers sources, selon la convention classique : vert = 
+    couvert, jaune = partiellement couvert, rouge = non couvert. Un résumé de couverture sera également donné
+    dans l'IDE. </p>    
+    
+<img src="./Outils pour la Programmation - TP1_files/fenetre-coverage-report.png" alt="Rapport de couverture dans l&#39;IDE" style="display: block; width: 90%; margin: 10px auto;">
+    
+<p><strong>Avec Maven.</strong> Si vous souhaitez paramétrer Maven pour produire le rapport de couverture de code suite à l'exécution des tests, il faut 
+    rajouter les lignes suivantes au fichier <code>pom.xml</code>.</p>
+
+<p class="terminal">
+&lt;project&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;build&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;plugins&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;plugin&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;groupId&gt;org.jacoco&lt;/groupId&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;artifactId&gt;jacoco-maven-plugin&lt;/artifactId&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;version&gt;0.8.6&lt;/version&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;executions&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;execution&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;id&gt;pre-unit-test&lt;/id&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;goals&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;goal&gt;prepare-agent&lt;/goal&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/goals&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/execution&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;execution&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;id&gt;post-unit-test&lt;/id&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;phase&gt;test&lt;/phase&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;goals&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;goal&gt;report&lt;/goal&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/goals&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/execution&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/executions&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/plugin&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/plugins&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;pluginManagement&gt;<br>    
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...<br>    
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/pluginManagement&gt;<br>    
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;/build&gt;<br>
+&lt;/project&gt;
+</p>
+    
+<p class="important">Prenez bien garde à faire apparaître le noeud <code>plugins</code> contenant le plugin JaCoCo comme fils
+    direct du noeud <code>build</code> et non pas comme descendant de <code>pluginManagement</code> (sinon un bug potentiel dans 
+    la version de Maven installée en salle TP pourrait empêcher l'exécution de JaCoCo). </p>    
+    
+<p>Désormais, lorsque vous exécuterez le goal <code>test</code> le rapport d'exécution des tests sera automatiquement généré/complété
+    dans un rapport au format HTML. Par défaut, le rapport HTML sera généré dans le répertoire <code>/target/site/jacoco</code> 
+    de l'arborescence du projet. Vous pouvez ouvrir le fichier <code>index.html</code> dans ce répertoire et visualiser le code couvert. </p>
+        
+<img src="./Outils pour la Programmation - TP1_files/jacoco-report1.png" class="figure">
+<p style="text-align: center;">
+    <img src="./Outils pour la Programmation - TP1_files/jacoco-report2.png" style="height: 300px; margin-right: 30px;"> <img src="./Outils pour la Programmation - TP1_files/jacoco-report3.png" style="height: 300px;">
+</p>
+        
+<p>Attention, avec JaCoCo appelé depuis Maven, la couverture de code ne sera pas effectué si les tests échouent. </p>
+        
+<p>Ces deux solutions sont indépendantes et donc, passer par Maven ne vous permettra pas d'avoir le retour sur la couverture de code dans l'éditeur de code... et vice-versa (passer par IntelliJ IDEA n'alimentera pas le rapport HTML). </p>
+
+<p>Pour la suite, vous pourrez choisir la façon de faire avec laquelle vous êtes le plus à l'aise. </p>        
+    
+
+<h2>A vous de jouer !</h2>
+        
+<p>L'environnement de travail étant mis en place, il n'y a "plus qu'à".</p>
+        
+<h3>Travail à réaliser</h3>
+    
+<p>Partez du <a href="https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/2/java/Station.java" target="_blank">squelette de la classe Station</a> (<code>Station.java</code>) et des
+    <a href="https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/2/java/TestStation.java" target="_blank">premiers tests</a> (<code>TestStation.java</code>) déjà donnés. </p>
+    
+<ol>
+    <li>Complétez le code des méthodes de la classe <code>Station</code> en vous appuyant sur la spécification 
+    donnée en début de sujet et rappelées dans la javadoc de la classe. </li>
+    <li>Complétez les tests unitaires de la classe <code>TestStation</code> pour couvrir les méthodes que vous venez
+    d'écrire. Faites en sorte d'atteindre 100% de couverture des branches. </li>
+</ol>
+        
+<p class="important">Votre modèle de données étant propre à votre implantation, les tests que vous écrirez ne doivent pas 
+    faire d'observation directe de celui-ci. En effet, le principe d'encapsulation fait que, quelque soit votre modèle 
+    de données, les services rendus par l'objet doivent être assurés. Avoir des tests indépendants du modèle de données
+    permet de faire évoluer ce dernier sans avoir à réécrire tous les tests associés. 
+    <br> Tout manquement à cette consigne empêchera la correction et la notation de votre TP. 
+</p>
+      
+        
+<h3>Quelques conseils</h3>
+                
+<p>Durant l'écriture des tests, respectez les principes suivants : </p>
+    <ul>
+        <li>Placez les bonnes assertions pour observer les valeurs de retour des différentes opérations et vous assurer qu'elles 
+            se sont comportées comme vous le pensiez dans votre test. <br>
+            Consultez la <a href="https://github.com/junit-team/junit4/wiki/Assertions" target="_blank">documentation de JUnit</a> 
+            pour connaître les possibilités offertes pour établir votre verdict de test, posant les bonnes assertions. 
+        </li>
+        <li>Si vous trouvez des erreurs avec vos assertions (assert), faites attention, celles-ci ne proviennent pas forcément du 
+            code, mais peut-être de vos tests. Revérifiez systématiquement vos tests et votre code pour trouver celui qui ne respecte
+            pas la spécification.  
+        </li>
+        <li>Préférez écrire un test par fonctionnalité à tester plutôt qu'un long test visant à couvrir toutes les fonctionnalités 
+            présentes dans le code. 
+        </li>
+        <li>Utilisez la mesure de couverture pour savoir si vous avez réussi à couvrir l'intégralité de la classe <code>Station</code>. 
+            Prenez garde aux conditions qui doivent être testées dans le cas où elles s'évaluent à vrai et dans le cas où elles 
+            s'évaluent à faux. JaCoCo vous apportera une aide précieuse pour visualiser la couverture des conditions. 
+        </li>
+        <li>Si cela s'avère nécessaire (mais ça ne devrait pas l'être pour ce TP), vous pouvez utiliser des méthodes permettant soit 
+            de factoriser des instructions 
+            utilisées en préambule de chaque test (généralement des initialisations d'objets) soit en postambule de chaque 
+            test (pour remettre le système dans un état "neutre" afin de pouvoir enchaîner le passage des tests sans effets de bord). 
+            Pour exécuter ces méthodes avant l'exécution des tests (respectivement après l'exécution des tests) on ajoute 
+            en JUnit 4 l'annotation @Before (resp. @After) avant la méthode correspondante.
+        </li>
+    </ul>
+
+    <p class="important">Rappelez vous que pour trouver une erreur, il faut <u>exécuter une faute</u>, et <u>observer une défaillance</u>.</p>
+        
+<h3>Travail à rendre</h3>
+
+<p>Déposez dans le dépôt Moodle de votre groupe de TP les deux fichiers suivants :</p>    
+        
+<ul>
+    <li>la classe Java complétée avec le code des différentes méthodes utilisées (fichier <code>Station.java</code>)</li>
+    <li>les tests que vous avez utilisés pour valider votre implantation (fichier <code>TestStation.java</code>)</li>
+</ul>
+        
+<p>Ceci devra être réalisé au plus tard la veille de la prochaine séance à 23h58. </p>
+    
+    </div>
+
+
+
+
+<script id="define-custom-element-wtd-root">
+      (() => {
+        window.customElements.whenDefined('wtd-root').then(() => {
+          window.dispatchEvent(
+            new CustomEvent('customElements.defined', {
+                detail: {
+                  name: 'wtd-root',
+                },
+            }),
+          );
+        });
+
+        if (window.customElements.get('wtd-root')) return;
+
+        window.customElements.define('wtd-root', class extends HTMLElement {
+          constructor() {
+            super();
+            this.attachShadow({ mode: 'open' });
+          }
+        });
+      })();
+    </script><wtd-root id="cashback"><template shadowrootmode="open"><div id="root"></div><link rel="stylesheet" href="chrome-extension://emnoomldgleagdjapdeckpmebokijail/tailwind/tailwind.css"></template></wtd-root><script id="define-custom-element-wtd-div">
+      (() => {
+        window.customElements.whenDefined('wtd-div').then(() => {
+          window.dispatchEvent(
+            new CustomEvent('customElements.defined', {
+                detail: {
+                  name: 'wtd-div',
+                },
+            }),
+          );
+        });
+
+        if (window.customElements.get('wtd-div')) return;
+
+        window.customElements.define('wtd-div', class extends HTMLElement {
+          constructor() {
+            super();
+            
+          }
+        });
+      })();
+    </script><wtd-div id="wanteeedContainer" style="position: fixed; display: block; top: 0px; right: 0px; z-index: 2147483647;"><wtd-root id="comparator"><template shadowrootmode="open"><div id="root"><div class="pointer-events-none z-[2147483647] flex select-none flex-col items-end overflow-hidden font-sans antialiased"></div></div><link rel="stylesheet" href="chrome-extension://emnoomldgleagdjapdeckpmebokijail/tailwind/tailwind.css"></template></wtd-root><iframe id="wanteeedPanel" data-version="1.118.0" allowtransparency="true" style="background-color: rgb(255, 255, 255); border: none; border-radius: 3px; box-shadow: rgb(181, 181, 181) 1px 1px 3px 2px; clip: auto; display: none; margin-left: auto; margin-right: 12px; margin-top: 12px; position: relative; z-index: 2147483647; height: 1px; width: 1px;" src="./Outils pour la Programmation - TP1_files/saved_resource.html"></iframe></wtd-div><iframe id="wanteeedTestMaker" data-version="1.118.0" allowtransparency="true" style="border: none; clip: auto; display: none; left: 0px; overflow: hidden; position: fixed; top: 10px; transition: all 0.2s ease-out 0s; z-index: 45739864; height: 1px; width: 1px;" src="./Outils pour la Programmation - TP1_files/saved_resource(1).html"></iframe></body></html>

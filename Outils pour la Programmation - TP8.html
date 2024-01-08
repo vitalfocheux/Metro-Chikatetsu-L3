@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<!-- saved from url=(0084)https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/2/TP8.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>Outils pour la Programmation - TP8</title>
+    <link rel="stylesheet" type="text/css" href="./Outils pour la Programmation - TP8_files/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com/"><link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin=""><link rel="stylesheet" href="./Outils pour la Programmation - TP8_files/css2" class="wtd-font"><link rel="stylesheet" href="./Outils pour la Programmation - TP8_files/css2(1)" class="wtd-font"></head>
+
+<body>
+
+<div id="bcPage">
+
+    <header>    
+    
+    <h1>Outils pour la programmation - Travaux pratiques</h1>
+
+    <h1 class="pluspetit">TP8 - Travail collaboratif</h1>
+
+    </header>
+        
+    <p style="text-decoration:underline;">Objectifs du TP :</p>
+
+    <ul>
+        <li>mettre en place un processus d'intégration continue</li>
+        <li>réaliser un travail collaboratif en vous appuyant sur un procédé d'intégration continue</li>
+        <li>implémenter un design pattern <em>factory</em> et un <em>singleton</em></li>
+    </ul>
+
+    <img src="./Outils pour la Programmation - TP8_files/EaDHf14WAAAG2af" style="width: 60%; margin: 10px auto; display: block;">
+    
+    <h2>Description de l'application à développer et à tester</h2>
+
+        <p>La description complète est <a href="https://moodle.univ-fcomte.fr/pluginfile.php/1616377/mod_resource/content/2/sujet.html" target="_blank">disponible ici</a>. Le modèle de données considéré est rappellé ci-dessous :</p>
+
+        <img src="./Outils pour la Programmation - TP8_files/DiagrammeClasse.png" alt="Diagramme de classes" class="figure" style="max-width: 700px;">
+
+    <p>Dans ce TP, nous allons développer la classe <code>TicketMachine</code> et la classe <code>TenIllimitedTripsTickets</code> qui 
+        seront les dernières classes de l'application. </p>
+
+    <p>Pour ce développement, on s'appuyera sur le fait que vous travaillez à plusieurs, en introduisant un 
+    processus de développement/validation croisée, où les fonctionnalités développées par un membre du groupe 
+    sont testées par un autre. </p>
+    
+
+    <h2>GitLab et l'intégration continue</h2>
+    
+    <!--
+    <h3>Un petit mot sur Git</h3>
+    
+    <p>Git est un système de gestion de version de plus en plus populaire dans le cadre du développement
+    de logiciels. Il diffère de SVN (vu dans les TP précédents) dans sa gestion des dépôts de sources. 
+    Au lieu d'avoir juste un dépôt distant (comme dans SVN) qui est synchronisé avec un répertoire local 
+    du client, Git ajoute un dépôt local à chaque client. L'envoi d'une 
+    nouvelle version sur le serveur se fera donc en deux temps : d'abord un <code>commit</code> local, 
+        puis un envoi vers le serveur de la version locale pour la partager avec les autres utilisateurs. </p>
+    
+    <p>Git peut s'exécuter en ligne de commande, mais il est également intégré dans de nombreuses interfaces
+    graphiques, dont les IDE (notamment IntelliJ). Toutefois, il est recommandé de connaître les commandes 
+    principales qui sont les suivantes : </p>
+    
+    <ul>
+        <li><code>git init</code> créé un nouveau dépôt sur le client</li>
+        <li><code>git clone</code> permet de cloner un dépôt distant</li>
+        <li><code>git add</code> ajoute de nouveaux fichiers</li>
+        <li><code>git commit</code> enregistre les modifications dans le dépôt local</li>
+        <li><code>git branch</code> liste les branches</li>
+        <li><code>git merge</code> fusionne deux branches</li>
+        <li><code>git log</code> affiche la liste des commits sur une branche</li>
+        <li><code>git push</code> publie (pousse) les révisions sur la branche distante</li>
+        <li><code>git pull</code> récupère les dernières modifications du projet depuis le dépôt distant</li>
+        <li><code>git stash</code> récupère côté client un état neutre</li>
+        <li><code>git status</code> permet de connaître l'état courant du dépôt</li>
+    </ul>
+    
+    <p>Différents sites comme <a href="https://gist.github.com/aquelito/8596717" target="_blank">celui-ci</a> ou <a href="https://git-scm.com/book/fr/v1/Les-bases-de-Git" target="_blank">celui-là</a> ou 
+        encore <a href="https://www.hostinger.fr/tutoriels/commandes-git/#gref" target="_blank">ce troisième</a> 
+        vous récapitulent les principales commandes à connaître avec leur syntaxe (dans le doute, 
+    <code>git help</code> est là pour vous aider...).</p>
+    
+    <p>Git est implanté et déployé dans différents environnements. Il est possible d'installer son propre serveur Git pour
+    héberger des dépôts ou de passer par une entité tierce (parmi les plus connues : <a href="https://github.com/gthub" target="_blank">GitHub</a> ou <a href="https://gitlab.com/" target="_blank">GitLab</a>. C'est ce dernier que nous allons 
+    utiliser par la suite du TP. </p>
+
+    <h3>Un mot sur l'intégration continue</h3>
+    -->
+    
+    <p>Comme vous l'avez vu en cours, l'intégration continue consiste à s'appuyer sur un gestionnaire de version, 
+    couplé à un serveur de build qui va être en charge, à chaque modification du dépôt, de compiler les sources, 
+    d'exécuter un ensemble de tests sur la version courante du logiciel et d'informer les développeurs en cas 
+    d'erreur dans le processus (compilation, test, déploiement, etc.). </p>
+    
+    <img src="./Outils pour la Programmation - TP8_files/CI.jpg" class="figure" alt="Intégration continue" style="width: 60%;">
+    
+    <p>Dans ce TP, nous allons mettre en place un processus d'intégration continue avec GitLab CI. Ce travail sera à réaliser
+    par groupe de deux (ou trois) étudiants. </p>
+    
+    
+    <h2>Mise en place de l'intégration continue sur GitLab</h2>
+    
+    <h3>Etape 1. Initier un travail collaboratif avec Gitlab</h3>
+
+    <p>Vous l'avez normalement déjà fait pour le TP7, mais si jamais, il vous faudra créer un compte sur le <a href="https://disc.univ-fcomte.fr/cr700-gitlab" target="_blank">serveur Gitlab du département info</a> pour chacun des membres du groupe.</p>
+       
+    <p>Une fois inscrit, l'un des membres du groupe pourra créer un projet vide (icône <code>+</code> en haut à gauche, 
+        puis <code>new project</code>). Donnez-lui le nom que vous souhaitez, par exemple <code>metro-L3</code>,
+        et donnez-lui une visibilité privée. 
+    </p>
+    
+    <p>Prenez garde à créer un projet <strong>entièrement vide</strong> sans README, ou tout autre fichier 
+        pré-existant dans le dépôt. </p>
+    
+    <img src="./Outils pour la Programmation - TP8_files/GitNewProject.png" class="figure" alt="Création d&#39;un nouveau projet dans GitLab">
+
+    <p>Une fois le projet créé, il pourra rajouter ses camarades. Pour ce faire, rendez-vous dans le menu 
+    <code>Manage</code> puis <code>Members</code>. Retrouvez vos camarades par l'intermédiaire de leur login 
+        GitLab et donnez-leur le rôle de <code>Maintainer</code>. Cette option permet de donner des permissions 
+        maximales à vos camarades, par simplicité. Ce ne sera pas forcément toujours ce qu'il faudra faire. 
+        Pour plus de détails, la liste 
+    complète des permissions associées à chacun des rôles est donné <a href="https://docs.gitlab.com/ee/user/permissions.html" target="_blank">sur cette page</a>.</p>
+    
+    <h3>Etape 2. Déposer une version de votre projet sur GitLab</h3>        
+
+    <p>Une fois le projet créé, GitLab vous donne sur la page d'accueil du projet, les commandes nécessaires
+    pour réaliser un premier dépôt, que ce soit à partir d'un nouveau dépôt, à partir d'une source existante, 
+    ou à partir d'un dépôt Git existant. <br>
+    Ces commandes ne devraient pas avoir de secret pour vous après le TP sur Git de la semaine précédente.
+    </p>
+    
+    <img src="./Outils pour la Programmation - TP8_files/GitLab-HowTo.png" class="figure" alt="Comment démarrer avec Git">
+    
+    <p class="important">Dans les commandes <code>git remote add</code>, préférez utiliser l'URL en https (voir ci-dessous) 
+        pour accéder au projet. </p>
+    
+    <p><strong>Actions pour le propriétaire du dépôt.</strong> Après avoir chacun défini vos paramètres globaux, 
+        le propriétaire du dépôt pourra réaliser les commandes correspondant à "Existing folder" pour ajouter le 
+        code de son projet Metro-L3 au dépôt partagé. Les fichiers à ajouter sont les suivants : </p>
+    <ul>
+        <li>le dossier <code>src</code> dans son intégralité</li>
+        <li>le fichier <code>pom.xml</code> qui se trouve à la racine</li>
+    </ul>
+    
+    
+    <p><strong>Actions pour les autres contributeurs.</strong> Une fois le dépôt initialisé avec les sources 
+    déposées par votre camarade, clonez le dépôt sur votre machine (dans un dossier différent de celui où 
+    vous aviez réalisé vos TPs précédents), avec la commande :</p>
+    
+    <p class="terminal" style="width: 70%;">git clone https://disc.univ-fcomte.fr/cr700-gitlab/login-owner/nom-du-projet-choisi.git</p>
+    
+    <p>Cette commande ne sera à utiliser qu'une seule fois, par la suite, pour récupérer la version courante 
+    du dépôt distant, vous utiliserez <code>git pull</code>. </p>
+    
+    <p>Vous pouvez ensuite éventuellement initialiser un nouveau projet dans IntelliJ, à partir de sources 
+    existantes. </p>
+    
+    <h3>Etape 3. Utiliser GitLab Continuous Integration (CI)</h3>
+    
+    <p>Depuis peu, GitLab intègre dans ses distributions une extension 
+        nommée <a href="https://docs.gitlab.com/ee/ci/" target="_blank">GitLab CI/CD</a> qui 
+        propose des fonctionnalités d'intégration continue, applicables sur votre projet. L'hébergeur 
+        <a href="https://gitlab.com/" target="_blank">gitlab.com</a> ne fait pas exception. </p>
+    
+    <p>Pour activer cette fonctionnalité, il s'agit de définir, par le biais d'un simple fichier de configuration nommé <code>.gitlab-ci.yml</code>
+    et placé à la racine de votre dépôt, les commandes à exécuter pour compiler le projet et exécuter les tests. GitLab CI se
+        charge ensuite de créer un espace virtuel, par l'intermédiaire d'une image <a href="https://www.docker.com/">Docker</a> qui 
+        fournit un conteneur (container) dédié à l'application, où celle-ci sera compilée et testée. Le résultat de ces 
+        étapes (jobs), organisées en série (pipelines), vous sera ensuite présenté en résumé sur la page GitLab du projet. 
+        En cas d'échec dans l'un des jobs, les développeurs sont informés par mail. 
+    </p>
+    
+    <p>Votre développement étant organisé avec Maven, les phases de compilation et de test de l'application sont 
+    donc standardisées, et peuvent être réalisées aisément à l'aide d'une image Docker d'un environnement contenant 
+    Maven. Le paramétrage du fichier <code>.gitlab-ci.yml</code> sera donc facilité. Le détail de la procédure 
+    est décrit <a href="https://docs.gitlab.com/ee/ci/quick_start/index.html#create-a-gitlab-ciyml-file" target="_blank">dans 
+    ce document</a>. Ce qui suit vous permet de réaliser les points utiles et nécessaires, pas-à-pas. </p>
+    
+    <p>Ajoutez le fichier <code>.gitlab-ci.yml</code> dont le code est donné ci-dessous à la racine de votre dépôt. </p>
+    
+    <p class="codesource">image: maven:latest
+
+stages:
+  - build
+  - test
+
+variables:
+  MAVEN_CLI_OPTS: "--batch-mode"
+  MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+
+build:
+  stage: build
+  script:
+    - mvn $MAVEN_CLI_OPTS compile
+
+test:
+  stage: test
+  script:
+    - mvn $MAVEN_CLI_OPTS test
+    - cat target/site/jacoco/index.html
+  coverage: '/Total.*?([0-9]{1,3})%/'
+</p>
+    
+<p>Pour ajouter ce fichier, est-il nécessaire de vous rappeler les trois commandes suivantes ? </p>
+    
+<ol>
+    <li><span class="terminal">git add .gitlab-ci.yml</span> pour planifier l'ajout du fichier au prochain commit,</li>
+    <li><span class="terminal">git commit -m "Ajout du fichier de config pour GitLab CI"</span> pour l'ajouter au dépôt local,</li>
+    <li><span class="terminal">git push</span> pour pousser le fichier dans le dépôt distant.</li>
+</ol>
+
+<p><img src="./Outils pour la Programmation - TP8_files/GitLab-pipeline1.png" style="float: right; width: 50%; margin-left: 10px; border: solid 1px #000;">
+    Une fois ce fichier ajouté au dépôt, rendez-vous dans le menu <code>Build</code> puis <code>Pipelines</code> où vous pourrez 
+    constater qu'un pipeline a été automatiquement créé pour compiler et tester votre projet, sur la base de ce qui était 
+    écrit dans le fichier <code>.gitlab-ci.yml</code>. </p>
+    
+<p><img src="./Outils pour la Programmation - TP8_files/GitLab-pipeline4.png" style="float: right; width: 50%; margin-left: 10px; border: solid 1px #000;">
+   Si tout se passe bien, vous devriez voir au bout d'un moment (il faut le temps de créer la machine virtuelle, 
+    de récupérer les sources, les compiler avec Maven, exécuter et dépouiller les tests) deux coches vertes. </p>    
+    
+<p><img src="./Outils pour la Programmation - TP8_files/GitLab-pipeline2.png" style="float: right; width: 50%;  margin-left: 10px; border: solid 1px #000;">
+   La chaîne s'arrête à la premier étape qui est mise en échec. C'est assez intuitif : si la compilation échoue, 
+    il est impossible de jouer les tests sur le projet. </p>    
+    
+<p>Dans tous les cas, si vous cliquez sur une des coches vous pourrez vous le détail de chacun des jobs, 
+    avec le log de la console dans laquelle s'est exécutée la tâche demandée. C'est notamment pratique pour
+    voir, dans le cas où les tests échouent, quel test a échoué. A noter que le mail d'information en cas 
+    d'échec d'un job vous proposera systématiquement un lien renvoyant sur cette page.
+</p>    
+    
+<img src="./Outils pour la Programmation - TP8_files/GitLab-log.png" class="figure" style="width: 60%;" alt="Exemple de log d&#39;exécution d&#39;une tâche (job)">    
+    
+
+<p>Il est possible que vous ayez des soucis au moment du build de votre projet. Cela peut venir d'une différence 
+    de version de Java utilisée sur le serveur GitLab vs. la version de Java utilisée sur votre machine ou en salle TP. 
+    Pour résoudre ce problème, vous pouvez monter de version les dépendances que vous utilisez dans le <code>pom.xml</code>,
+    notamment : 
+    </p>
+<ul>
+    <li>passer la version de JaCoCo à <code>0.8.6</code></li>
+    <li>passer la version de Mockito à <code>2.23.4</code></li>
+</ul>
+
+<p>N'oubliez pas, une fois cette modification effectuée, de pousser vos fichiers sur le serveur (<code>git commit -am ...</code> puis
+    <code>git push</code>).</p>
+
+    
+<h3>Faire remonter la couverture des tests</h3>
+    
+<p>Vous remarquerez au bout de la ligne des jobs "test" (menu <code>Build</code> puis <code>Jobs</code>) 
+    une colonne "Coverage" qui permet, avec le paramétrage
+    adéquat, d'extraire et de faire remonter une information de coverture (de code). Ce processus est assez 
+    basique puisqu'il consiste à aller extraire une valeur, à l'aide d'une expression régulière, dans les 
+    lignes de la console. </p>
+
+<p>Cette valeur est automatiquement remontée de par les dernières lignes présentes dans le fichier <code>.gitlab-ci.yml</code>.</p>
+
+    <!---
+<p>Pour demander l'extraction de la mesure de couverture de cette source, rendez-vous dans le menu <code>Settings</code>
+    puis <code>CI/CD</code>. Développez la section <code>General Pipelines</code>. Déroulez la page jusqu'à trouver 
+    la sous-section <code>Test coverage parsing</code> et indiquez l'expression régulière donnée en exemple pour JaCoCo. </p>
+    
+    <img src="images/GitLab-regex.png" class="figure" alt="Expression régulière pour extraire la mesure de couverture">
+    
+<p>N'oubliez pas de pousser la nouvelle version du fichier <code>.gitlab-ci.yml</code> sur le dépôt distant (<code>git commit -am ...</code>
+    puis <code>git push</code>).</p>
+    
+    <p>A la prochaine exécution des tests, la colonne "Coverage" sera ainsi instanciée avec le pourcentage de couverture
+        ainsi récupéré. </p>  -->
+    
+    <img src="./Outils pour la Programmation - TP8_files/GitLab-coverage.png" class="figure" alt="Expression régulière pour extraire la mesure de couverture">
+
+
+    <h3>Avant de passer à la suite...</h3>
+    
+    <p>La CI est désormais en place : à chaque modification du code sur le dépôt, les tests présents dans le projet seront 
+        exécutés automatiquement. </p>
+    
+    <p>Toutefois, une précision importante : </p>
+    
+    <p class="important">Le passage des tests sur la CI n'est pas fait pour exécuter vos tests à votre place ! </p>
+    
+    <p>Il s'agit d'un moyen de s'assurer que le code partagé dans un projet est valide. Les tests sur Gitlab ne doivent 
+    donc jamais échouer (ou qu'en des occasions très spécifiques qui témoignent d'un réel souci dans le projet). </p>
+    <strong style="display: block; text-align:center;">
+        Vous DEVEZ donc passer vos tests sur votre machine de développement avant de pousser votre code et vos tests 
+        sur le dépôt Git partagé ! </strong> 
+    
+    <p>Aucun code erroné ne doit être mis sur le dépôt sous peine de vous 
+        attirer les foudres de vos collaborateurs (actuels ou futurs). </p>
+
+    
+    
+<h2>Travail à réaliser</h2>    
+
+    
+    <p>Vous aurez constaté que le projet contient uniquement les tests du propriétaire du projet. Les autres membres
+    du groupe peuvent également ajouter leurs tests au dépôt (après renommage de leurs classes de test et de leurs fichiers
+    de ressources pour éviter les conflits avec ceux existants) pour permettre 
+    d'augmenter la base de tests ainsi associée au projet. Accessoirement, cela permettra de vérifier que le code 
+    passe tous les tests... </p>
+    
+    <p>Une fois ceci effectué, et les éventuels désaccords réglés de façon pacifique et civilisée, vous pouvez passer 
+        à la suite du TP ci-dessous. </p>
+    
+    
+    <p>Dans ce TP, nous allons réaliser deux ajouts dans le projet qui peuvent se partager entre les membres du groupe. 
+        L'un consistera à ajouter un nouveau type de ticket. L'autre aura pour objectif de permettre l'instanciation 
+        de tickets via une fabrique. 
+    </p>
+    
+    
+    <h3>Description de la classe <code>TenIllimitedTripsTicket</code></h3>
+    
+    <p>Cette classe représente un ticket qui permet d'être utilisé pour 10 voyages sur une distance illimitée. 
+    Ce type de ticket un peu particulier n'a du coup pas de montant spécifique. </p>
+    
+    <p>Comme tous les types de tickets, elle implante l'interface <code>ITicket</code> et propose un constructeur 
+    de visibilité protégée : <code>protected TenIllimitedTripsTicket(boolean child)</code> qui permet de créer 
+        un ticket 10 voyages illimité pour un enfant ou un adulte (en fonction de la valeur du paramètre booléen). </p>
+    
+    <p>Ce ticket a plusieurs particularités : </p>
+    
+    <ul>
+        <li>il permet d'effectuer 10 voyages et ne sera donc pas invalidé avant d'avoir réalisé 
+        les 10 trajets. Une différence notable avec les tickets déjà manipulés est que le fait de réaliser deux 
+        insertions successives du ticket dans une borne d'entrée (méthode <code>entering</code>)
+        consommera un trajet (en considérant que le voyage en cours est annulé et qu'un nouveau voyage commence). </li>
+<!--        <li>il n'a pas de type particulier, donc l'appel à la méthode <code>isChild</code> présente un comportement
+        indéfini (la méthode peut indifféremment renvoyer <code>true</code> ou <code>false</code> n'a pas d'importance). </li>-->
+        <li>sa méthode <code>getAmount()</code> doit nécessairement renvoyer la valeur maximale possible. </li>
+        <li>ce ticket n'a pas vocation à être ajusté. </li>
+    </ul>
+    
+    <p>Développez la classe <code>TenIllimitedTripsTicket</code> et les tests associés dans la classe
+        <code>TestTenIllimitedTripsTickets</code>. 
+    </p>
+    
+    <p>Le développement de cette classe ne doit pas impacter l'implantation de la classe <code>Barrier</code> existante. 
+    Les tests de cette classe peuvent contenir quelques tests d'intégration permettant de s'en assurer. </p>
+    
+    
+    <h3>Description de la classe <code>TicketMachine</code></h3>
+
+    <p>Cette classe représente une classe utilitaire de l'application qui a vocation à instancier, pour un client 
+        extérieur au paquetage, les tickets, soit sous forme de tickets de base (instance de <code>BaseTicket</code>),
+        sous forme de tickets dans le montant a été ajusté (instance de <code>AdjustedTicket</code>) ou sous forme
+        de tickets 10 voyages illimités (instance de <code>TenTripsIllimitedTicket</code> décrit au paragraphe précédent).
+    </p>
+    
+    <p>Les méthodes contenues dans cette classe sont les suivantes : </p>
+
+    <ul>
+        <li><code>ITicket buyTicket(boolean child, int... amount)</code> permet de créer un ticket pour le 
+            type d'usage spécifié via le premier paramètre. Le second paramètre est facultatif et représente
+            l'éventuel montant du ticket. Si ce paramètre est présent et correct (montant strictement positif)
+            un ticket de base est créé. En cas d'appel avec des paramètres incorrects, la valeur
+            <code>null</code> est renvoyée pour signifier qu'aucun ticket n'a été créé. 
+            Si le second paramètre n'est pas renseigné, alors on instanciera un ticket 10 voyages illimités. 
+        </li>
+        <li><code>ITicket adjustFare(ITicket old, int amount)</code> permet d'ajuster le montant du ticket passé 
+            en premier paramètre pour lui créditer la somme spécifiée par le second paramètre et créer ainsi un 
+            ticket ajusté. Dans le cas d'un ancien 
+            ticket <code>null</code>, la méthode renvoie <code>null</code>. Si le second paramètre n'est pas strictement
+            positif, la méthode renvoie l'ancien ticket passé en paramètre. Dans le cas où on demande à ajuster un 
+            ticket non-ajustable, celui-ci est directement retourné par la méthode, sans qu'il ne soit modifié. 
+        </li>
+    </ul>
+
+    <p>Cette classe doit être réalisée avec le patron de conception <em>singleton</em>. Elle présentera donc une méthode
+        statique <code>getInstance()</code> qui permettra d'obtenir l'unique instance possible de cette classe. </p>
+
+    <p>Il va sans dire que des tests doivent être réalisés pour cette classe. </p>
+    
+    
+    
+<h2>Travail à rendre</h2>    
+    
+<p>Rien à rendre sur Moodle pour ce TP, on s'appuyera sur vos projets qui devront être à jour sur Gitlab d'ici la prochaine
+    séance (code à jour et tous les tests qui passent). </p>
+    
+<p>Pour permettre à vos encadrants de TP d'accéder au projet, ajoutez votre chargé de TP ainsi que l'utilisateur 
+    <code>fdadeau</code> à votre projet avec le rôle <code>Developer</code>. </p>
+        
+</div>
+
+
+
+
+<script id="define-custom-element-wtd-root">
+      (() => {
+        window.customElements.whenDefined('wtd-root').then(() => {
+          window.dispatchEvent(
+            new CustomEvent('customElements.defined', {
+                detail: {
+                  name: 'wtd-root',
+                },
+            }),
+          );
+        });
+
+        if (window.customElements.get('wtd-root')) return;
+
+        window.customElements.define('wtd-root', class extends HTMLElement {
+          constructor() {
+            super();
+            this.attachShadow({ mode: 'open' });
+          }
+        });
+      })();
+    </script><wtd-root id="cashback"><template shadowrootmode="open"><div id="root"></div><link rel="stylesheet" href="chrome-extension://emnoomldgleagdjapdeckpmebokijail/tailwind/tailwind.css"></template></wtd-root><script id="define-custom-element-wtd-div">
+      (() => {
+        window.customElements.whenDefined('wtd-div').then(() => {
+          window.dispatchEvent(
+            new CustomEvent('customElements.defined', {
+                detail: {
+                  name: 'wtd-div',
+                },
+            }),
+          );
+        });
+
+        if (window.customElements.get('wtd-div')) return;
+
+        window.customElements.define('wtd-div', class extends HTMLElement {
+          constructor() {
+            super();
+            
+          }
+        });
+      })();
+    </script><wtd-div id="wanteeedContainer" style="position: fixed; display: block; top: 0px; right: 0px; z-index: 2147483647;"><wtd-root id="comparator"><template shadowrootmode="open"><div id="root"><div class="pointer-events-none z-[2147483647] flex select-none flex-col items-end overflow-hidden font-sans antialiased"></div></div><link rel="stylesheet" href="chrome-extension://emnoomldgleagdjapdeckpmebokijail/tailwind/tailwind.css"></template></wtd-root><iframe id="wanteeedPanel" data-version="1.118.0" allowtransparency="true" style="background-color: rgb(255, 255, 255); border: none; border-radius: 3px; box-shadow: rgb(181, 181, 181) 1px 1px 3px 2px; clip: auto; display: none; margin-left: auto; margin-right: 12px; margin-top: 12px; position: relative; z-index: 2147483647; height: 1px; width: 1px;" src="./Outils pour la Programmation - TP8_files/saved_resource.html"></iframe></wtd-div><iframe id="wanteeedTestMaker" data-version="1.118.0" allowtransparency="true" style="border: none; clip: auto; display: none; left: 0px; overflow: hidden; position: fixed; top: 10px; transition: all 0.2s ease-out 0s; z-index: 45739864; height: 1px; width: 1px;" src="./Outils pour la Programmation - TP8_files/saved_resource(1).html"></iframe></body></html>
